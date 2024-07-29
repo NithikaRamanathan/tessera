@@ -7,6 +7,8 @@ import EventDetail from './pages/EventDetail';
 import LoginPage from './pages/LoginPage';
 import SignupPage from './pages/SignupPage';
 import AccountPage from './pages/AccountPage';
+import UpdateUserPage from './pages/UpdateUserPage';
+
 function App() {
   return (
     <ChakraProvider>
@@ -29,6 +31,7 @@ function AppContent() {
           <Route path="/login" element={<LoginPage />} />
           <Route path="/signup" element={<SignupPage />} />
           <Route path="/account" element={<AccountPage />} />
+          <Route path="/update_user" element={<UpdateUserPage />} />
         </Routes>
 
     </>

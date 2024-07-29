@@ -37,13 +37,13 @@ function Filter({ sendDataToParent }) {
         // </Flex>
 
 
-        <Flex bg={barColor} color={textColor} rounded='md' border='solid'  width='100%' minWidth='max-content' alignItems='start' p='2px' >
+        <Flex marginTop='80px' bg={barColor} color={textColor} rounded='md' border='solid'  width='100%' minWidth='max-content' alignItems='start' p='2px' >
 
             <InputGroup>
                 <InputLeftElement pointerEvents='none'>
                     <Search2Icon color={textColor} />
                 </InputLeftElement>
-                <Input rounded='0' borderColor='transparent' type='text' _placeholder={{color: textColor }} placeholder='City or Zip Code' />
+                <Input rounded='0' borderColor='transparent' type='text' _placeholder={{color: textColor }} placeholder='Search by Venue' />
             </InputGroup>
 
             <Box borderLeft='solid' borderRight='solid' borderLeftColor={textColor} borderRightColor={textColor} >
@@ -58,7 +58,7 @@ function Filter({ sendDataToParent }) {
                 <InputLeftElement pointerEvents='none'>
                     <Search2Icon color={textColor} />
                 </InputLeftElement>
-                <Input rounded='0' _placeholder={{color: textColor }} borderColor='transparent' type='text' placeholder='Search by Artist, Event or Venue' />
+                <Input rounded='0' _placeholder={{color: textColor }} borderColor='transparent' type='text' placeholder='Search by Artist or Event' />
             </InputGroup>
 
         </Flex>

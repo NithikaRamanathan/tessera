@@ -1,5 +1,6 @@
-import AccountBox from '../components/AccountBox';
+import UpdateUserBox from '../components/UpdateUserBox';
 import React, { useEffect, useState } from 'react';
+
 
 import {
     Heading,
@@ -18,7 +19,7 @@ import {
   } from "@chakra-ui/react";
   import { useColorMode, useColorModeValue } from "@chakra-ui/color-mode";
 
-const AccountPage = () => {
+const UpdateUserPage = () => {
     const [users, setUsers] = useState([]);
     useEffect(() => {
         fetch(`http://localhost:5000/users/account_info`, {credentials:'include'})
@@ -43,22 +44,22 @@ const AccountPage = () => {
        <GridItem colSpan={1}/>
         <GridItem colSpan={3}>
         {users.map(user => (
-        <AccountBox
-          key={user.user_id}
-          firstName={user.first_name}
-          lastName={user.last_name}
-          email={user.email}
-          avatarUrl={user.avatar_url}
-          username={user.username}
-        />
+            <UpdateUserBox
+            key={user.user_id}
+            user_id={user.user_id}
+            firstName={user.first_name}
+            lastName={user.last_name}
+            email={user.email}
+            avatarUrl={user.avatar_url}
+            username={user.username}
+            />
     
       ))}
         </GridItem>
 
-       {/* <AccountBox/> */}
       </Grid>
     );
   };
   
   
-  export default AccountPage;
+  export default UpdateUserPage;

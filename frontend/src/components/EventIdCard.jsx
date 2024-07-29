@@ -37,7 +37,7 @@ function EventIdCard({ id, time, name, date, location, imageUrl, description }) 
     //     Footer
     //   </GridItem>
     // </Grid>
-    <VStack display={{ md: 'flex' }} alignItems='baseline'>
+    <VStack marginTop='80px' display={{ md: 'flex' }} alignItems='baseline'>
       <HStack display={{ md: 'flex' }} bg='white' p ='3' width='100%'>
 
       <Box flexShrink={0}>

@@ -190,10 +190,12 @@ def login():
             if user_info == None:
                 return jsonify({'message': 'Invalid username or email'}), 401 
             pass_hash = user_info['password_hash']
+            user_id = user_info['user_id']
             
             subject = {
                 "username": username,
-                "email": user_info['email']
+                "email": user_info['email'],
+                "user_id": user_id
             }
         else:
             cursor.execute('SELECT * FROM Users WHERE email = ?', (email,))            
@@ -226,37 +228,76 @@ def login():
         return jsonify({'error': str(e)}), 500
 
 
-@app.route('/users/update', methods=['PUT'])
-def update_user():
-    old_username = request.json.get('old_username')
+@app.route('/users/update/<user_id>', methods=['PUT'])
+@jwt_required()
+def update_user(user_id):
+    
+    #old_username = request.json.get('old_username')
     new_username = request.json.get('new_username')
-    old_email = request.json.get('old_email')
+    #old_email = request.json.get('old_email')
     new_email = request.json.get('new_email')
+    new_avatar_url = request.json.get('new_avatar_url')
     
     try:
         conn = get_db_connection()
         cursor = conn.cursor()
         
         # changing username and email
-        if old_username and new_username and old_email and new_email:
-            cursor.execute('UPDATE Users SET username=? WHERE username=?', (new_username, old_username,))
-            cursor.execute('UPDATE Users SET email=? WHERE email=?', (new_email, old_email,))
+        if new_username and new_email and not new_avatar_url:
+            cursor.execute('UPDATE Users SET username=? WHERE user_id=?', (new_username, user_id,))
+            cursor.execute('UPDATE Users SET email=? WHERE user_id=?', (new_email, user_id,))
             conn.commit() # Commit the changes to the database
-            return jsonify({'message': 'Changed username and email successfully'}), 401
+            return jsonify({'message': 'Changed username and email successfully'}), 200
+
+        # changing username, email, and avatar_url
+        if new_username and new_email and new_avatar_url:
+            cursor.execute('UPDATE Users SET username=? WHERE user_id=?', (new_username, user_id,))
+            cursor.execute('UPDATE Users SET email=? WHERE user_id=?', (new_email, user_id,))
+            cursor.execute('UPDATE Users SET avatar_url=? WHERE user_id=?', (new_avatar_url, user_id,))
+            conn.commit() # Commit the changes to the database
+            return jsonify({'message': 'Changed username and email successfully'}), 200
 
         # changing only username
-        elif old_username and new_username and not old_email and not new_email:
-            cursor.execute('UPDATE Users SET username=? WHERE username=?', (new_username, old_username,))
+        elif new_username and not new_email:
+            cursor.execute('UPDATE Users SET username=? WHERE user_id=?', (new_username, user_id,))
             conn.commit()
-            return jsonify({'message': 'Changed username successfully'}), 401
+            return jsonify({'message': 'Updated username successfully'}), 200
 
         # changing only email
-        elif old_email and new_email and not old_username and not new_username:
-            cursor.execute('UPDATE Users SET email=? WHERE email=?', (new_email, old_email,))
+        elif new_email and not new_username:
+            cursor.execute('UPDATE Users SET email=? WHERE user_id=?', (new_email, user_id,))
             conn.commit()
-            return jsonify({'message': 'Changed email successfully'}), 401
+            return jsonify({'message': 'Changed email successfully'}), 200
+        
+         # changing only avatar_url
+        elif new_avatar_url and not new_username and not new_email:
+            cursor.execute('UPDATE Users SET avatar_url=? WHERE user_id=?', (new_avatar_url, user_id,))
+            conn.commit()
+            return jsonify({'message': 'Changed avatar url successfully'}), 200
         else:
             return jsonify({'error': 'Fields are missing'}), 400
+        
+        
+        # changing username and email
+        # if old_username and new_username and old_email and new_email:
+        #     cursor.execute('UPDATE Users SET username=? WHERE username=?', (new_username, old_username,))
+        #     cursor.execute('UPDATE Users SET email=? WHERE email=?', (new_email, old_email,))
+        #     conn.commit() # Commit the changes to the database
+        #     return jsonify({'message': 'Changed username and email successfully'}), 401
+
+        # # changing only username
+        # elif old_username and new_username and not old_email and not new_email:
+        #     cursor.execute('UPDATE Users SET username=? WHERE username=?', (new_username, old_username,))
+        #     conn.commit()
+        #     return jsonify({'message': 'Changed username successfully'}), 401
+
+        # # changing only email
+        # elif old_email and new_email and not old_username and not new_username:
+        #     cursor.execute('UPDATE Users SET email=? WHERE email=?', (new_email, old_email,))
+        #     conn.commit()
+        #     return jsonify({'message': 'Changed email successfully'}), 401
+        # else:
+        #     return jsonify({'error': 'Fields are missing'}), 400
         
     except sqlite3.Error as e:
         return jsonify({'error': 'Database error'}), 500 
@@ -351,37 +392,37 @@ def get_emails():
     return jsonify(emails_list)  # Return the list of emails as JSON
 
 
-@app.route('/users/change_password', methods=['PUT'])
-@jwt_required()
-def update_password():
+@app.route('/users/change_password/<user_id>', methods=['PUT'])
+# @jwt_required()
+def update_password(user_id):
 
     # Extract username, current password, and new password from the JSON payload
-    username = request.json.get('username')
-    current_password = request.json.get('current_password')
+    curr_password = request.json.get('curr_password')
     new_password = request.json.get('new_password')
 
     # Basic validation to ensure all fields are provided
-    if not username or not current_password or not new_password:
-        return jsonify({'error': 'All fields (username, current password, and new password) are not there.'}), 400
+    if not curr_password or not new_password:
+        return jsonify({'error': 'All fields (current password and new password) are required.'}), 400
     
     try:
         conn = get_db_connection()
         cursor = conn.cursor()
-        cursor.execute('SELECT password_hash FROM Users WHERE username = ?', (username,))
+        cursor.execute('SELECT password_hash FROM Users WHERE user_id = ?', (user_id,))
         pass_hash = cursor.fetchone()
+        # print(pass_hash['password_hash'])
 
         if pass_hash == None:
             return jsonify({'error': 'User not found'}), 404
         
         existing_pass_hash = pass_hash['password_hash']
-        if not check_password_hash(existing_pass_hash, current_password):
+        if not check_password_hash(existing_pass_hash, curr_password):
             return jsonify({'error': 'Current password is incorrect'}), 401
         
         new_password_hash = generate_password_hash(new_password)
-        cursor.execute('UPDATE Users SET password_hash=? WHERE username=?', (new_password_hash, username,))
+        cursor.execute('UPDATE Users SET password_hash=? WHERE user_id=?', (new_password_hash, user_id,))
         conn.commit()
 
-        return jsonify({'message': 'Password updated successfully.'})
+        return jsonify({'message': 'Password updated successfully.'}), 200
     except sqlite3.Error as e:
         return jsonify({'error': 'Database error'}), 500 
     except Exception as e:
@@ -483,13 +524,13 @@ def get_event_with_id(event_id):
 @jwt_required()
 def account_info():
     jwt = get_jwt()
-    username = jwt['sub']['username']
+    user_id = jwt['sub']['user_id']
    
     
     try:
             conn = get_db_connection()
             cursor = conn.cursor()
-            cursor.execute('SELECT * FROM Users WHERE username=?', (username,))
+            cursor.execute('SELECT * FROM Users WHERE user_id=?', (user_id,))
             details = cursor.fetchall()
             list = [dict(detail) for detail in details]
             conn.close()
@@ -500,6 +541,9 @@ def account_info():
         return jsonify({'error': 'Database error'}), 500 
     except Exception as e:
         return jsonify({'error': str(e)}), 500
+    
+    
+# endpoints for 
 
 # THIS IS AT THE END
 if __name__ == '__main__':

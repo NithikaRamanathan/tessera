@@ -9,30 +9,25 @@ import {
     chakra,
     Box, Link as ChakraLink,
     InputRightElement, Grid, GridItem,
-    Center, HStack, Spacer, Text, Image, Flex, SimpleGrid
+    Center, HStack, Spacer, Text, Image, Flex, SimpleGrid, FormControl,
+    FormLabel,
+    FormErrorMessage,
+    FormHelperText, Alert,
+    AlertIcon,
+    AlertTitle,
+    AlertDescription
 } from "@chakra-ui/react";
 import { Link, useNavigate } from 'react-router-dom';
 
 import { Card, CardHeader, CardBody, CardFooter } from '@chakra-ui/react'
 import { FaUserAlt, FaLock } from "react-icons/fa";
 import { useColorModeValue } from "@chakra-ui/color-mode";
-import {
-    FormControl,
-    FormLabel,
-    FormErrorMessage,
-    FormHelperText,
-} from '@chakra-ui/react'
-import {
-    Alert,
-    AlertIcon,
-    AlertTitle,
-    AlertDescription,
-} from '@chakra-ui/react'
+
 
 // icons
 const CFaUserAlt = chakra(FaUserAlt);
 const CFaLock = chakra(FaLock);
-import { ViewIcon, ViewOffIcon, CheckIcon, NotAllowedIcon } from '@chakra-ui/icons';
+import { ViewIcon, ViewOffIcon, CheckIcon, ArrowBackIcon } from '@chakra-ui/icons';
 import { Link as ReactRouterLink } from 'react-router-dom'
 
 
@@ -145,6 +140,9 @@ function LoginBox() {
                             </Button>
 
                         </Stack>
+                        <Spacer />
+                        <ChakraLink as={Link} to='/events' color={textColor}><ArrowBackIcon/> Browse Events</ChakraLink>
+                        
                     </Box>
                 </form>
             </CardBody>

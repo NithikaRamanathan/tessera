@@ -17,7 +17,7 @@ import {
 function Navbar() {
   const { Menu } = useColorMode()
   return (
-    <Flex bg="blue.500" p="4" alignItems="center">
+    <Flex position='fixed' width='100vw' bg="blue.500" p="4" alignItems="center" zIndex={'sticky'}>
       <Box p="2">
         <Text fontSize="xl" fontWeight="bold" color='white' as={Link} to='/events'>Tessera Events </Text>
       </Box>
