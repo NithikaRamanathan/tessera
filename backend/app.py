@@ -1,7 +1,7 @@
 from flask import Flask, jsonify, make_response, request # Importing the Flask library and some helper functions
 from werkzeug.security import generate_password_hash
 import sqlite3 # Library for talking to our database
-from datetime import datetime # We'll be working with dates 
+from datetime import date # We'll be working with dates 
 from werkzeug.security import generate_password_hash, check_password_hash # need to compare hashes of passwords
 from datetime import timedelta
 
@@ -26,7 +26,7 @@ jwt = JWTManager(app)
 
 
 @app.route('/logout', methods=['POST'])
-@jwt_required()
+#@jwt_required()
 def logout():
     resp = jsonify({'logout': True})
     unset_jwt_cookies(resp)
@@ -541,10 +541,202 @@ def account_info():
         return jsonify({'error': 'Database error'}), 500 
     except Exception as e:
         return jsonify({'error': str(e)}), 500
-    
-    
-# endpoints for 
 
+@app.route('/users/current', methods=['GET'])
+@jwt_required()
+def current_user():
+    # conn = get_db_connection()  # Establish database connection
+    # cursor = conn.cursor()
+    jwt = get_jwt()
+    user_id = jwt['sub']['user_id']
+    return jsonify(user_id)
+    
+# populating prices table
+@app.route('/inventory/prices', methods=['POST'])
+def create_prices():
+    pricecode = request.json.get('pricecode')
+    value = request.json.get('value')
+    event_id = request.json.get('event_id')
+    
+    if not pricecode or not event_id or not value:
+        return jsonify({'error': 'All fields are required'}), 400
+    
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        cursor.execute('INSERT INTO Prices (pricecode, value, event_id) VALUES (?, ?, ?)', (pricecode, value, event_id))
+        
+        conn.commit()
+        
+        # Retrieve the price_id of the newly created user to confirm creation
+        cursor.execute('SELECT price_id FROM Prices WHERE pricecode = ?', (pricecode))
+        new_price_id = cursor.fetchone()
+        print(new_price_id)
+        
+        return jsonify({'message': 'Pricecode created successfully', 'price_id': new_price_id['price_id']}), 200
+        
+        
+    except sqlite3.Error as e:
+        return jsonify({'error': 'Database error'}), 500 
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+# populating tickets table
+@app.route('/inventory/create', methods=['POST'])
+def create_tickets():
+    row_name = request.json.get('row_name')
+    seat_number = request.json.get('seat_number')
+    event_id = request.json.get('event_id')
+    pricecode = request.json.get('pricecode')
+    status = 'AVAILABLE'
+    
+    if not row_name or not seat_number or not event_id or not pricecode:
+        return jsonify({'error': 'All fields are required'}), 400
+    
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        cursor.execute('INSERT INTO Tickets (row_name, seat_number, event_id, pricecode, status) VALUES (?, ?, ?, ?, ?)', (row_name, seat_number, event_id, pricecode, status,))
+        conn.commit()
+        # cursor.execute('SELECT row_name AND seat_number AND event_id FROM Tickets WHERE row_name = ? AND seat_number = ? AND event_id = ?', (row_name, seat_number, event_id,))
+        # new_ticket = cursor.fetchone()
+        return jsonify({'message': 'Ticket created successfully'}), 200
+            
+        
+    except sqlite3.Error as e:
+        return jsonify({'error': str(e)}), 500 
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+    
+@app.route('/inventory/tickets', methods=['GET'])
+def get_tickets():
+    conn = get_db_connection()  # Establish database connection
+    cursor = conn.cursor()
+    
+    # SQL query to select all users
+    cursor.execute('SELECT row_name, seat_number, event_id, status, pricecode FROM Tickets')
+    tickets = cursor.fetchall()  # Fetch all users
+    
+    # Convert rows into a list of dicts to make them serializable
+    tickets_list = [dict(ticket) for ticket in tickets]
+    
+    conn.close()  # Close the database connection
+    
+    return jsonify(tickets_list)  # Return the list of events as JSON
+
+@app.route('/inventory/tickets/event/<event_id>', methods=['GET'])
+def get_tickets_for_event(event_id):
+    conn = get_db_connection()  # Establish database connection
+    cursor = conn.cursor()
+    
+    # SQL query to select all users
+    # cursor.execute('SELECT row_name, seat_number, event_id, status, pricecode FROM Tickets WHERE event_id=?', (event_id))
+    
+    #
+    cursor.execute('SELECT row_name, seat_number, status, value FROM Tickets JOIN Prices ON Tickets.pricecode = Prices.pricecode AND Tickets.event_id = Prices.event_id WHERE Tickets.event_id=?', (event_id))
+    
+    tickets = cursor.fetchall()  # Fetch all users
+    
+    # Convert rows into a list of dicts to make them serializable
+    tickets_list = [dict(ticket) for ticket in tickets]
+    
+    conn.close()  # Close the database connection
+    
+    return jsonify(tickets_list)  # Return the list of events as JSON
+
+
+
+@app.route('/inventory/tickets/<user_id>', methods=['GET'])
+def get_tickets_for_user(user_id):
+    conn = get_db_connection()  # Establish database connection
+    cursor = conn.cursor()
+    
+    # SQL query to select all users
+    cursor.execute('SELECT row_name, seat_number, event_id, status, pricecode FROM Tickets WHERE user_id=?', (user_id))
+    tickets = cursor.fetchall()  # Fetch all users
+    
+    # Convert rows into a list of dicts to make them serializable
+    tickets_list = [dict(ticket) for ticket in tickets]
+    
+    conn.close()  # Close the database connection
+    
+    return jsonify(tickets_list)  # Return the list of events as JSON
+
+@app.route('/inventory/buy/<user_id>', methods=['PUT'])
+def buy_ticket(user_id):
+    row_name = request.json.get('row_name')
+    seat_number = request.json.get('seat_number')
+    event_id = request.json.get('event_id')
+    purchase_date = date.today()
+    status = 'SOLD'
+    
+    conn = get_db_connection()  # Establish database connection
+    cursor = conn.cursor()
+    
+    cursor.execute('SELECT status FROM Tickets WHERE row_name=? AND seat_number=? AND event_id=?', (row_name, seat_number, event_id,))
+    curr_status = cursor.fetchone()
+    
+    # and user id match
+    if (str(curr_status) == 'RESERVED'):
+        # SQL query to update the ticket
+        cursor.execute('UPDATE Tickets SET user_id=?, status=?, purchase_date=? WHERE row_name=? AND seat_number=? AND event_id=?', (user_id, status, purchase_date, row_name, seat_number, event_id,))
+        
+    
+    conn.commit()  
+    conn.close()
+    # Close the database connection
+    
+    return jsonify({'message': 'Ticket bought successfully.'})
+
+@app.route('/inventory/reserve/<user_id>', methods=['PUT'])
+def reserve_ticket(user_id):
+    row_name = request.json.get('row')
+    seat_number = request.json.get('number')
+    event_id = request.json.get('event_id')
+    status = ''
+    
+    conn = get_db_connection()  # Establish database connection
+    cursor = conn.cursor()
+
+    cursor.execute('SELECT status FROM Tickets WHERE row_name=? AND seat_number=? AND event_id=?', (row_name, seat_number, event_id,))
+    temp_status = cursor.fetchone()
+    
+    if temp_status['status'] == 'AVAILABLE':
+        status='RESERVED'
+        # SQL query to update the ticket
+        cursor.execute('UPDATE Tickets SET user_id=?, status=? WHERE row_name=? AND seat_number=? AND event_id=?', (user_id, status, row_name, seat_number, event_id,))
+        conn.commit()  
+        conn.close()
+        return jsonify({'message': 'Ticket reserved successfully.'})
+    else:
+        return jsonify({'error': 'Ticket not available'}), 404 
+    
+# make an unreserve endpoint. make the user id empty
+
+@app.route('/inventory/unreserve', methods=['PUT'])
+def unreserve_ticket():
+    row_name = request.json.get('row')
+    seat_number = request.json.get('number')
+    event_id = request.json.get('event_id')
+    user_id = None
+    status = ''
+    
+    conn = get_db_connection()  # Establish database connection
+    cursor = conn.cursor()
+
+    cursor.execute('SELECT status FROM Tickets WHERE row_name=? AND seat_number=? AND event_id=?', (row_name, seat_number, event_id,))
+    temp_status = cursor.fetchone()
+    
+    if temp_status['status'] == 'RESERVED':
+        status='AVAILABLE'
+        # SQL query to update the ticket
+        cursor.execute('UPDATE Tickets SET user_id=?, status=? WHERE row_name=? AND seat_number=? AND event_id=?', (user_id, status, row_name, seat_number, event_id,))
+        conn.commit()  
+        conn.close()
+        return jsonify({'message': 'Ticket unreserved successfully.'})
+    else:
+        return jsonify({'error': 'Ticket not available'}), 404 
+    
 # THIS IS AT THE END
 if __name__ == '__main__':
     app.run(debug=True)

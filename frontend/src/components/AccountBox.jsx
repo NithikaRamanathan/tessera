@@ -48,16 +48,18 @@ import { ViewIcon, ViewOffIcon, EditIcon } from '@chakra-ui/icons';
 
 const AccountBox = ({ firstName, lastName, email, avatarUrl, username, user_id }) => {
     const [invalid, setInvalid] = useState(false);
+    const navigate = useNavigate();
+
 
     async function fetchLogout() {
         const response = await fetch(`http://localhost:5000/logout`, {
             method: 'POST',
-            //credentials: 'include',  // Include cookies in the request
+            credentials: 'include',  // Include cookies in the request
 
         })
             .then(response => {
-                if (response.status === 200) {
-                    navigate('/events')
+                if (response.status == 200) {
+                    navigate('/login')
                 } else {
                     setInvalid(true);
                 }
@@ -70,33 +72,26 @@ const AccountBox = ({ firstName, lastName, email, avatarUrl, username, user_id }
             size='lg'
             height='100%'
             maxWidth='100vw'
-
             marginTop='80px'
-
         >
             <CardBody>
-            <HStack p='15px'>
+                <HStack p='15px'>
+                    <Wrap>
+                        <WrapItem>
 
-                
-                                <Wrap>
-                                    <WrapItem>
+                            <Avatar borderWidth='1px' borderColor='black' size='2xl' src={`${avatarUrl}`} />
 
-                                        <Avatar borderWidth='1px' borderColor='black' size='2xl' src={`${avatarUrl}`} />
+                        </WrapItem>
+                    </Wrap>
 
-                                    </WrapItem>
-                                </Wrap>
+                    <VStack paddingStart='25px' alignItems='left'>
+                        <Heading> {firstName} {lastName}</Heading>
+                        <Text>{email}</Text>
 
-                            
-                                <VStack paddingStart='25px' alignItems='left'>
-                                    <Heading> {firstName} {lastName}</Heading>
-                                    <Text>{email}</Text>
+                        <ChakraLink as={Link} to={`/update_user`}>Edit Your Information <EditIcon /></ChakraLink>
 
-                                    <ChakraLink as={Link} to={`/update_user`}>Edit Your Information <EditIcon /></ChakraLink>
-
-                                </VStack>
-                            
-                                </HStack>
-
+                    </VStack>
+                </HStack>
 
                 <Heading as='h2' size='md' paddingStart='5px' paddingTop='15px'>Account</Heading>
 
@@ -138,7 +133,6 @@ const AccountBox = ({ firstName, lastName, email, avatarUrl, username, user_id }
 
             </CardBody>
         </Card>
-
     )
 }
 
