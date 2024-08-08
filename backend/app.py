@@ -4,6 +4,8 @@ import sqlite3 # Library for talking to our database
 from datetime import date # We'll be working with dates 
 from werkzeug.security import generate_password_hash, check_password_hash # need to compare hashes of passwords
 from datetime import timedelta
+import time
+import stripe
 
 
 from flask_jwt_extended import (
@@ -707,6 +709,7 @@ def reserve_ticket(user_id):
         cursor.execute('UPDATE Tickets SET user_id=?, status=? WHERE row_name=? AND seat_number=? AND event_id=?', (user_id, status, row_name, seat_number, event_id,))
         conn.commit()  
         conn.close()
+        countdown()
         return jsonify({'message': 'Ticket reserved successfully.'})
     else:
         return jsonify({'error': 'Ticket not available'}), 404 
@@ -738,25 +741,90 @@ def unreserve_ticket():
     else:
         return jsonify({'error': 'Ticket not available'}), 404 
     
-@app.route('/get_price', methods=['POST'])
+@app.route('/get_price', methods=['GET'])
 def get_price():
-    row_name = request.json.get('row')
-    seat_number = request.json.get('number')
-    event_id = request.json.get('event_id')
+    row_name = request.args.get('row')
+    seat_number = request.args.get('number')
+    event_id = request.args.get('event_id')
     
     conn = get_db_connection()  # Establish database connection
     cursor = conn.cursor()
     cursor.execute('SELECT value FROM Tickets JOIN Prices ON Tickets.pricecode = Prices.pricecode AND Tickets.event_id = Prices.event_id WHERE Tickets.event_id=? AND Tickets.seat_number=? AND Tickets.row_name=?', (event_id,seat_number,row_name,))
     
-    price = cursor.fetchone()  # Fetch all users
+    price = cursor.fetchone() # fetch the price
     
     conn.close()
     
     if price:
         return jsonify(price['value'])
-    else:
+    else: 
         return jsonify(0)
+    
+    # row_name = request.json.get('row')
+    # seat_number = request.json.get('number')
+    # event_id = request.json.get('event_id')
+    
+    # conn = get_db_connection()  # Establish database connection
+    # cursor = conn.cursor()
+    # cursor.execute('SELECT value FROM Tickets JOIN Prices ON Tickets.pricecode = Prices.pricecode AND Tickets.event_id = Prices.event_id WHERE Tickets.event_id=? AND Tickets.seat_number=? AND Tickets.row_name=?', (event_id,seat_number,row_name,))
+    
+    # price = cursor.fetchone()  # Fetch all users
+    
+    # conn.close()
+    
+    # if price:
+    #     return jsonify(price['value'])
+    # else:
+    #     return jsonify(0)
+    
+# doesn't work when user manually unreserves the ticket themselves
+def countdown():
+    time.sleep(10)
+    unreserve_ticket()
+    
+# Get your key from your dashboard
+stripe.api_key = 'your-stripe-secret-key'
 
-# THIS IS AT THE END
+@app.route('/create-payment-intent', methods=['POST'])
+def create_payment_intent():
+    try:
+        data = request.json
+        amount = data['amount']  # Amount in cents
+        
+        # More Docs: https://docs.stripe.com/api/payment_intents/create
+        payment_intent = stripe.PaymentIntent.create(
+            amount=amount,
+            currency='usd'
+        )
+
+        return jsonify({
+            'clientSecret': payment_intent['client_secret']
+        })
+    except Exception as e:
+        return jsonify(error=str(e)), 403
+
+@app.route('/complete-purchase', methods=['POST'])
+def complete_purchase():
+    try:
+        data = request.json
+        payment_intent_id = data['paymentIntentId']
+        seats = data['seats']
+        
+        # More Docs: https://docs.stripe.com/api/payment_intents/retrieve
+        payment_intent = stripe.PaymentIntent.retrieve(payment_intent_id)
+        if payment_intent.status != 'succeeded':
+            return jsonify({"error": "Payment not successful"}), 400
+        
+        ### This is where you should process the sale
+        ### Remember everything you need to assign seats to an account
+        ### You'll probably need more inputs
+        ### Create functions to help you with this! Break up your code
+
+        return jsonify({"message": "Purchase completed successfully"})
+    
+    except Exception as e:
+        return jsonify(error=str(e)), 500
+
+# PUT THIS AT THE END
 if __name__ == '__main__':
     app.run(debug=True)

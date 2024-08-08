@@ -8,11 +8,10 @@ function SeatPicker({ event_id, user_id }) {
     const [loading, setLoading] = useState(true);
     const [tickets, setTickets] = useState([]);
     const [rows, setRows] = useState([]);
-
     const[totalPrice, setTotalPrice] = useState(0);
 
-    const obj = {}
 
+    // fetch the tickets (seats) when the event_id changes
     useEffect(() => {
         fetch(`http://localhost:5000/inventory/tickets/event/${event_id}`, {
             method: 'GET',
@@ -22,36 +21,28 @@ function SeatPicker({ event_id, user_id }) {
         })
             .then(response => response.json())
             .then(data => {
-
-                setTickets(data)
+                setTickets(data) // update the use state with the fetched tickets
             }
             ).catch(error => console.error('Error fetching:', error));
-    }, [event_id]);
+    }, [event_id]); // dependency is event_id so this useeffect runs when the event_id changes
 
+    // make the tickets (seats) data into the correct format when the tickets are fetched
     useEffect(() => {
-        // first param is what is accumulating the value
-        // second param is the initial val
-
+        // using a reducer. first param is what is accumulating the value and second param is the initial value
         if (tickets.length > 0) {
             const result = tickets.reduce((acc, c) => {
                 // rowsTest.sort((a,b) => a.row_name - b.row_name)
                 const rId = c.row_name;
                 const seat_info = {
-                    id: c.row_name.concat(c.seat_number), 
+                    id: c.row_name.concat(c.seat_number), // this is the unique id for the seat
                     number: c.seat_number, 
                     isReserved: (c.status == "AVAILABLE") ? false : true, 
-                    tooltip: "$".concat(c.value),
-                    // price: c.value
-                
+                    tooltip: "$".concat(c.value),                
                 }
 
-
+                // accumulating the seats into rows
                 if (!(c.row_name in acc)) {
                     acc[c.row_name] = [seat_info]
-
-
-                    // acc[c.row_name] = []
-                    // acc[c.row_name].push(seat_info)
                 }
                 else {
                     acc[c.row_name].push(seat_info)
@@ -61,33 +52,25 @@ function SeatPicker({ event_id, user_id }) {
                 // return [...a, {rowName: c.row_name.charCodeAt()-64, seatNum: c.seat_number}];
 
             }, {}); // type object as the initial value 
-            setRows(Object.values(result))
-
+            setRows(Object.values(result)) // update the state with the rows data ignoring the keys
             setLoading(false)
         }
-    }, [tickets]);
+    }, [tickets]); // dependency- runs when tickets chance
 
-    
+    // function to fetch seat price based on the row, number, and event_id
     const fetchSeatPrice = async (row, number, event_id) => {
-        const response = await fetch('http://localhost:5000/get_price', {
-            method: 'POST',
+        const response = await fetch(`http://localhost:5000/get_price?row=${row}&number=${number}&event_id=${event_id}`, {
+            method: 'GET',
             headers: {
                 'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                row,
-                number,
-                event_id
-            })
+            }
         });
         return response.json();
-    }
-
+    };
 
     // id is seat id
     const addSeatCallback = async ({ row, number, id }, addCb) => {
         setLoading(true);
-
 
         try {
             const price = await fetchSeatPrice(row, number, event_id);
@@ -104,13 +87,9 @@ function SeatPicker({ event_id, user_id }) {
                 })
             });
 
-
-            // add button to checkout and reroute them
+            // notes: add button to checkout and reroute them
             // python timers to run code every x minutes
             // separate python script that unlocks all the seats when given the event_id
-            // how to run code every x minutes in python
-            // wrtie an event to run every minute. get the time right now. and do a sql request to update
-            // the columns where time is less than this minus 5
 
             // limitations when two people acces the same page at the same time
             // check if youre logged in and get user id from there. dont render anything in the event details page if you arent logged in
@@ -118,8 +97,8 @@ function SeatPicker({ event_id, user_id }) {
             // Assuming everything went well...
             setSelected((prevItems) => [...prevItems, id]);
 
-
-            setTotalPrice(prevTotal => prevTotal + price);
+            // update state
+            setTotalPrice(prevValue => prevValue + price);
             const updateTooltipValue = 'Added to cart';
 
             // Important to call this function if the seat was successfully selected - it helps update the screen
@@ -151,7 +130,7 @@ function SeatPicker({ event_id, user_id }) {
             })
 
             setSelected((list) => list.filter((item) => item !== id));
-            setTotalPrice(prevTotal => prevTotal - price);
+            setTotalPrice(prevValue => prevValue - price); // update totalPrice state by subtracting
             removeCb(row, number);
         } catch (error) {
             // Handle any errors here
