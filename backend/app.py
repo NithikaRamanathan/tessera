@@ -715,6 +715,7 @@ def reserve_ticket(user_id):
 
 @app.route('/inventory/unreserve', methods=['PUT'])
 def unreserve_ticket():
+    
     row_name = request.json.get('row')
     seat_number = request.json.get('number')
     event_id = request.json.get('event_id')
@@ -737,6 +738,25 @@ def unreserve_ticket():
     else:
         return jsonify({'error': 'Ticket not available'}), 404 
     
+@app.route('/get_price', methods=['POST'])
+def get_price():
+    row_name = request.json.get('row')
+    seat_number = request.json.get('number')
+    event_id = request.json.get('event_id')
+    
+    conn = get_db_connection()  # Establish database connection
+    cursor = conn.cursor()
+    cursor.execute('SELECT value FROM Tickets JOIN Prices ON Tickets.pricecode = Prices.pricecode AND Tickets.event_id = Prices.event_id WHERE Tickets.event_id=? AND Tickets.seat_number=? AND Tickets.row_name=?', (event_id,seat_number,row_name,))
+    
+    price = cursor.fetchone()  # Fetch all users
+    
+    conn.close()
+    
+    if price:
+        return jsonify(price['value'])
+    else:
+        return jsonify(0)
+
 # THIS IS AT THE END
 if __name__ == '__main__':
     app.run(debug=True)

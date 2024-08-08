@@ -13,27 +13,12 @@ function EventIdCard({ id, time, name, date, location, imageUrl, description }) 
 
   const [userId, setUserId] = useState("")
 
-  //   fetch(`http://localhost:5000/users/account_info`, {
-  //     method: 'GET',
-  //     credentials: 'include',
-  //     headers: {
-  //         'Content-Type': 'application/json'
-  //     },
-  //     body: JSON.stringify({
-
-  // //                 row_name = request.json.get('row_name')
-  // // seat_number = request.json.get('seat_number')
-  // // event_id = request.json.get('event_id')
-  //     })
-  //     .then(setUser)
-  // })
   useEffect(() => {
     fetch(`http://localhost:5000/users/current`, { credentials: 'include' })
       .then(response => response.json())
       .then(data => setUserId(data))
       .catch(error => console.error('Error fetching events:', error));
   }, []);
-
 
   return (
     <Grid
@@ -47,7 +32,7 @@ function EventIdCard({ id, time, name, date, location, imageUrl, description }) 
 
      current user id: {userId}
 
-     
+
       </GridItem>
       <GridItem bg='pink' rowSpan={4} colSpan={1} />
 
@@ -69,7 +54,7 @@ function EventIdCard({ id, time, name, date, location, imageUrl, description }) 
       </GridItem>
       <GridItem rowSpan={3} bg='pink.200' colSpan={3}>
         <Flex>location</Flex>
-        <Flex> button to buy ticket</Flex>
+        <Flex> button to buy ticket </Flex>
       </GridItem>
 
 

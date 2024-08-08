@@ -3,46 +3,15 @@ import TesseraSeatPicker from 'tessera-seat-picker';
 import { Grid, GridItem, Box, Flex, Card, VStack, HStack } from '@chakra-ui/react';
 
 
-
-// const rows = [
-//     [
-//         { id: 1, number: 1, tooltip: "$30" },
-//         { id: 2, number: 2, tooltip: "$30" },
-//         { id: 3, number: 3, isReserved: true, tooltip: "$30" },
-//         null,
-//         { id: 4, number: 4, tooltip: "$30" },
-//         { id: 5, number: 5, tooltip: "$30" },
-//         { id: 6, number: 6, tooltip: "$30" }
-//     ],
-//     [
-//         { id: 7, number: 1, isReserved: true, tooltip: "$20" },
-//         { id: 8, number: 2, isReserved: true, tooltip: "$20" },
-//         { id: 9, number: 3, isReserved: true, tooltip: "$20" },
-//         null,
-//         { id: 10, number: 4, tooltip: "$20" },
-//         { id: 11, number: 5, tooltip: "$20" },
-//         { id: 12, number: 6, tooltip: "$20" }
-//     ],
-//     [
-//         { id: 13, number: 1, isReserved: true, tooltip: "$20" },
-//         { id: 14, number: 2, isReserved: true, tooltip: "$20" },
-//         { id: 15, number: 3, isReserved: true, tooltip: "$20" },
-//         null,
-//         { id: 16, number: 4, tooltip: "$20" },
-//         { id: 17, number: 5, tooltip: "$20" },
-//         { id: 18, number: 6, tooltip: "$20" }
-//     ]
-// ];
-
-
 function SeatPicker({ event_id, user_id }) {
     const [selected, setSelected] = useState([]);
     const [loading, setLoading] = useState(true);
     const [tickets, setTickets] = useState([]);
     const [rows, setRows] = useState([]);
 
-    const obj = {}
+    const[totalPrice, setTotalPrice] = useState(0);
 
+    const obj = {}
 
     useEffect(() => {
         fetch(`http://localhost:5000/inventory/tickets/event/${event_id}`, {
@@ -67,7 +36,14 @@ function SeatPicker({ event_id, user_id }) {
             const result = tickets.reduce((acc, c) => {
                 // rowsTest.sort((a,b) => a.row_name - b.row_name)
                 const rId = c.row_name;
-                const seat_info = { id: c.row_name.concat(c.seat_number), number: c.seat_number, isReserved: (c.status == "AVAILABLE")? false : true, tooltip: "$".concat(c.value) }
+                const seat_info = {
+                    id: c.row_name.concat(c.seat_number), 
+                    number: c.seat_number, 
+                    isReserved: (c.status == "AVAILABLE") ? false : true, 
+                    tooltip: "$".concat(c.value),
+                    // price: c.value
+                
+                }
 
 
                 if (!(c.row_name in acc)) {
@@ -85,32 +61,37 @@ function SeatPicker({ event_id, user_id }) {
                 // return [...a, {rowName: c.row_name.charCodeAt()-64, seatNum: c.seat_number}];
 
             }, {}); // type object as the initial value 
-            console.log(Object.values(result))
             setRows(Object.values(result))
-            //rowsTest.push(Object.values(result))
-            // console.log(rows)
 
             setLoading(false)
         }
     }, [tickets]);
 
-    // if (tickets[i].row_name === 'A'){
-    //     rowsTest.push([{id: tickets[i].row_name.concat(tickets[i].seat_number), number: tickets[i].seat_number}])
-    //     console.log(rowsTest.length)
-    //     if(rowsTest.length == 5) {
-    //         console.log(rowsTest)
-    //     }
-    // }
+    
+    const fetchSeatPrice = async (row, number, event_id) => {
+        const response = await fetch('http://localhost:5000/get_price', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                row,
+                number,
+                event_id
+            })
+        });
+        return response.json();
+    }
 
+
+    // id is seat id
     const addSeatCallback = async ({ row, number, id }, addCb) => {
         setLoading(true);
 
 
-
         try {
+            const price = await fetchSeatPrice(row, number, event_id);
             // Your custom logic to reserve the seat goes here:
-
-            // http://localhost:5000/inventory/reserve/<user_id>
             fetch(`http://localhost:5000/inventory/reserve/${user_id}`, {
                 method: 'PUT',
                 headers: {
@@ -121,9 +102,10 @@ function SeatPicker({ event_id, user_id }) {
                     number,
                     event_id
                 })
-            })
-            
-// add button to checkout and reroute them
+            });
+
+
+            // add button to checkout and reroute them
             // python timers to run code every x minutes
             // separate python script that unlocks all the seats when given the event_id
             // how to run code every x minutes in python
@@ -133,9 +115,11 @@ function SeatPicker({ event_id, user_id }) {
             // limitations when two people acces the same page at the same time
             // check if youre logged in and get user id from there. dont render anything in the event details page if you arent logged in
 
-
             // Assuming everything went well...
             setSelected((prevItems) => [...prevItems, id]);
+
+
+            setTotalPrice(prevTotal => prevTotal + price);
             const updateTooltipValue = 'Added to cart';
 
             // Important to call this function if the seat was successfully selected - it helps update the screen
@@ -150,6 +134,7 @@ function SeatPicker({ event_id, user_id }) {
 
     const removeSeatCallback = async ({ row, number, id }, removeCb) => {
         setLoading(true);
+        const price = await fetchSeatPrice(row, number, event_id);
 
         try {
             // Your custom logic to remove the seat goes here...
@@ -166,6 +151,7 @@ function SeatPicker({ event_id, user_id }) {
             })
 
             setSelected((list) => list.filter((item) => item !== id));
+            setTotalPrice(prevTotal => prevTotal - price);
             removeCb(row, number);
         } catch (error) {
             // Handle any errors here
@@ -177,7 +163,7 @@ function SeatPicker({ event_id, user_id }) {
 
     return (
 
-        
+<div>
         <TesseraSeatPicker
             addSeatCallback={addSeatCallback}
             removeSeatCallback={removeSeatCallback}
@@ -187,6 +173,9 @@ function SeatPicker({ event_id, user_id }) {
             visible
             loading={loading}
         />
+        <div>Price: ${totalPrice}</div>
+
+        </div>
     );
 }
 
