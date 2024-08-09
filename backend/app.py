@@ -675,15 +675,10 @@ def buy_ticket(user_id):
     conn = get_db_connection()  # Establish database connection
     cursor = conn.cursor()
     
-    cursor.execute('SELECT status FROM Tickets WHERE row_name=? AND seat_number=? AND event_id=?', (row_name, seat_number, event_id,))
-    curr_status = cursor.fetchone()
-    
-    # and user id match
-    if (str(curr_status) == 'RESERVED'):
-        # SQL query to update the ticket
-        cursor.execute('UPDATE Tickets SET user_id=?, status=?, purchase_date=? WHERE row_name=? AND seat_number=? AND event_id=?', (user_id, status, purchase_date, row_name, seat_number, event_id,))
+    cursor.execute('UPDATE Tickets SET user_id=?, status=?, purchase_date=? WHERE user_id = ? AND row_name=? AND seat_number=? AND event_id=?', (user_id, status, purchase_date, user_id, row_name, seat_number, event_id,))
         
-    
+    # just do it in the query
+    # get user from get jwt
     conn.commit()  
     conn.close()
     # Close the database connection

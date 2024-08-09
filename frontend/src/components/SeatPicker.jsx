@@ -1,14 +1,15 @@
 import React, { useEffect, useState } from 'react';
 import TesseraSeatPicker from 'tessera-seat-picker';
-import { Grid, GridItem, Box, Flex, Card, VStack, HStack } from '@chakra-ui/react';
+import { Grid, GridItem, Box, Button, Flex, Card, VStack, HStack } from '@chakra-ui/react';
 
 
-function SeatPicker({ event_id, user_id }) {
+function SeatPicker({ event_id, user_id, callback_function }) {
     const [selected, setSelected] = useState([]);
     const [loading, setLoading] = useState(true);
     const [tickets, setTickets] = useState([]);
     const [rows, setRows] = useState([]);
     const[totalPrice, setTotalPrice] = useState(0);
+    let add = true;
 
 
     // fetch the tickets (seats) when the event_id changes
@@ -58,22 +59,22 @@ function SeatPicker({ event_id, user_id }) {
     }, [tickets]); // dependency- runs when tickets chance
 
     // function to fetch seat price based on the row, number, and event_id
-    const fetchSeatPrice = async (row, number, event_id) => {
-        const response = await fetch(`http://localhost:5000/get_price?row=${row}&number=${number}&event_id=${event_id}`, {
-            method: 'GET',
-            headers: {
-                'Content-Type': 'application/json'
-            }
-        });
-        return response.json();
-    };
+    // const fetchSeatPrice = async (row, number, event_id) => {
+    //     const response = await fetch(`http://localhost:5000/get_price?row=${row}&number=${number}&event_id=${event_id}`, {
+    //         method: 'GET',
+    //         headers: {
+    //             'Content-Type': 'application/json'
+    //         }
+    //     });
+    //     return response.json();
+    // };
 
     // id is seat id
     const addSeatCallback = async ({ row, number, id }, addCb) => {
         setLoading(true);
 
         try {
-            const price = await fetchSeatPrice(row, number, event_id);
+            // const price = await fetchSeatPrice(row, number, event_id);
             // Your custom logic to reserve the seat goes here:
             fetch(`http://localhost:5000/inventory/reserve/${user_id}`, {
                 method: 'PUT',
@@ -98,11 +99,12 @@ function SeatPicker({ event_id, user_id }) {
             setSelected((prevItems) => [...prevItems, id]);
 
             // update state
-            setTotalPrice(prevValue => prevValue + price);
+            // setTotalPrice(prevValue => prevValue + price);
             const updateTooltipValue = 'Added to cart';
-
+            callback_function(row, number, add)
             // Important to call this function if the seat was successfully selected - it helps update the screen
             addCb(row, number, id, updateTooltipValue);
+            
         } catch (error) {
             // Handle any errors here
             console.error('Error adding seat:', error);
@@ -113,7 +115,8 @@ function SeatPicker({ event_id, user_id }) {
 
     const removeSeatCallback = async ({ row, number, id }, removeCb) => {
         setLoading(true);
-        const price = await fetchSeatPrice(row, number, event_id);
+        add = false;
+        // const price = await fetchSeatPrice(row, number, event_id);
 
         try {
             // Your custom logic to remove the seat goes here...
@@ -130,7 +133,8 @@ function SeatPicker({ event_id, user_id }) {
             })
 
             setSelected((list) => list.filter((item) => item !== id));
-            setTotalPrice(prevValue => prevValue - price); // update totalPrice state by subtracting
+            callback_function(row, number, add)
+            // setTotalPrice(prevValue => prevValue - price); // update totalPrice state by subtracting
             removeCb(row, number);
         } catch (error) {
             // Handle any errors here
@@ -140,9 +144,9 @@ function SeatPicker({ event_id, user_id }) {
         }
     };
 
+
     return (
 
-<div>
         <TesseraSeatPicker
             addSeatCallback={addSeatCallback}
             removeSeatCallback={removeSeatCallback}
@@ -152,9 +156,7 @@ function SeatPicker({ event_id, user_id }) {
             visible
             loading={loading}
         />
-        <div>Price: ${totalPrice}</div>
-
-        </div>
+        
     );
 }
 

@@ -100,10 +100,6 @@ function Filter({ sendDataToParent }) {
 
 
 
-        // <div>
-        // <Input placeholder='Select Date' size='md' type='date' onChange={(e) => setData(e.target.value)}/>
-        // <Button onClick={handleClick}>Select</Button>
-        // </div>
     );
 }
 export default Filter;

@@ -5,6 +5,7 @@ import { useColorMode, useColorModeValue } from "@chakra-ui/color-mode";
 import SeatPicker from '../components/SeatPicker';
 import { CalendarIcon, TimeIcon } from '@chakra-ui/icons';
 import { MdOutlineShoppingCartCheckout } from "react-icons/md";
+import Checkout from './Checkout';
 
 
 function EventIdCard({ id, time, name, date, location, imageUrl, description }) {
@@ -13,6 +14,29 @@ function EventIdCard({ id, time, name, date, location, imageUrl, description }) 
   const color = useColorModeValue('blue.500', 'blue.400');
 
   const [userId, setUserId] = useState("")
+  const [value, setValue] = useState(0)
+  const [isCheckout, setIsCheckout] = useState(false);
+  const [totalPrice, setTotalPrice] = useState(0)
+
+  const fetchSeatPrice = async (row, number, add) => {
+    await fetch(`http://localhost:5000/get_price?row=${row}&number=${number}&event_id=${id}`, {
+        method: 'GET',
+        headers: {
+            'Content-Type': 'application/json'
+        }
+    }) 
+    .then(response => response.json())
+    .then( price => {
+      if(add) {
+        setValue(value + price)
+      } else {
+        setValue(value - price)
+      }
+    }
+    );
+    
+};
+
 
   useEffect(() => {
     fetch(`http://localhost:5000/users/current`, { credentials: 'include' })
@@ -20,6 +44,10 @@ function EventIdCard({ id, time, name, date, location, imageUrl, description }) 
       .then(data => setUserId(data))
       .catch(error => console.error('Error fetching events:', error));
   }, []);
+
+  const handleCheckout = () => {
+    setIsCheckout(true)
+  }
 
   return (
     <Grid
@@ -34,7 +62,6 @@ function EventIdCard({ id, time, name, date, location, imageUrl, description }) 
         {/* current user id: {userId} */}
         <Box
           position="relative"
-          // h={80}
           // bgImage="url('https://www.utep.edu/extendeduniversity/utepconnect/blog/june-2019/how-an-online-degree-can-prepare-you-for-remote-positions.jpg')"
 
           bgImage="url('https://wallpapers.com/images/hd/phineas-and-ferb-across-2d-1xf62nz0k0oyan1a.jpg')"
@@ -55,7 +82,6 @@ function EventIdCard({ id, time, name, date, location, imageUrl, description }) 
             h="full"
             bg="black"
             opacity={0.7}
-          // bgBlendMode="multiply"
           />
           <Center
             position="relative"
@@ -84,7 +110,6 @@ function EventIdCard({ id, time, name, date, location, imageUrl, description }) 
           <Text>lalala</Text>
         </HStack>
 
-
       </GridItem>
       <GridItem rowSpan={4} colSpan={1} bg='purple' />
 
@@ -96,17 +121,33 @@ function EventIdCard({ id, time, name, date, location, imageUrl, description }) 
 
           event_id={id}
           user_id={userId}
+          callback_function={fetchSeatPrice}
 
         />
       </GridItem>
       <GridItem p='10px' rowSpan={3} bg='pink.200' colSpan={3}>
         <Flex>{location}</Flex>
 
-        <Button rightIcon={<MdOutlineShoppingCartCheckout />} colorScheme='blue' variant='solid' as={Link} to={`/checkout`}>
+        
+        <Flex>Price: ${value}</Flex>
+        
+
+        {/* need to call buy endpoint*/}
+        <Button rightIcon={<MdOutlineShoppingCartCheckout />} colorScheme='blue' variant='solid' onClick={handleCheckout}>
           Checkout
         </Button>
+        {isCheckout && (
+          <Checkout
+            selectedSeats={selectedSeats}
+            totalPrice={totalPrice}
+            event_id={event_id}
+            user_id={user_id}
+          />
+        )}
+         {/* <Button rightIcon={<MdOutlineShoppingCartCheckout />} colorScheme='blue' variant='solid' onClick={buyTicket}>
+          Checkout
+        </Button> */}
       </GridItem>
-
 
 
 
