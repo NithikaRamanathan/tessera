@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Grid, GridItem, Flex, Box, VStack, Spacer, Button, Image, Text, Stack, HStack, Container, Center } from '@chakra-ui/react';
+import { Grid, GridItem, Flex, Box, VStack, Spacer, Button, Image, Text, Stack, HStack, Container, Center, useDisclosure } from '@chakra-ui/react';
 import { Link } from 'react-router-dom';
 import { useColorMode, useColorModeValue } from "@chakra-ui/color-mode";
 import SeatPicker from '../components/SeatPicker';
@@ -15,27 +15,32 @@ function EventIdCard({ id, time, name, date, location, imageUrl, description }) 
 
   const [userId, setUserId] = useState("")
   const [value, setValue] = useState(0)
-  const [isCheckout, setIsCheckout] = useState(false);
-  const [totalPrice, setTotalPrice] = useState(0)
+
+
+  const {isOpen, onOpen, onClose} = useDisclosure();
+
+
+
 
   const fetchSeatPrice = async (row, number, add) => {
     await fetch(`http://localhost:5000/get_price?row=${row}&number=${number}&event_id=${id}`, {
-        method: 'GET',
-        headers: {
-            'Content-Type': 'application/json'
-        }
-    }) 
-    .then(response => response.json())
-    .then( price => {
-      if(add) {
-        setValue(value + price)
-      } else {
-        setValue(value - price)
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json'
       }
-    }
-    );
-    
-};
+    })
+      .then(response => response.json())
+      .then(price => {
+        if (add) {
+          setValue(value + price)
+
+        } else {
+          setValue(value - price)
+        }
+      })
+      .catch(error => console.error('Error fetching', error));
+
+  };
 
 
   useEffect(() => {
@@ -46,8 +51,10 @@ function EventIdCard({ id, time, name, date, location, imageUrl, description }) 
   }, []);
 
   const handleCheckout = () => {
-    setIsCheckout(true)
-  }
+    onOpen();
+  };
+
+
 
   return (
     <Grid
@@ -128,23 +135,50 @@ function EventIdCard({ id, time, name, date, location, imageUrl, description }) 
       <GridItem p='10px' rowSpan={3} bg='pink.200' colSpan={3}>
         <Flex>{location}</Flex>
 
-        
+
         <Flex>Price: ${value}</Flex>
-        
+
 
         {/* need to call buy endpoint*/}
-        <Button rightIcon={<MdOutlineShoppingCartCheckout />} colorScheme='blue' variant='solid' onClick={handleCheckout}>
+        <Button
+          rightIcon={<MdOutlineShoppingCartCheckout />}
+          colorScheme='blue'
+          variant='solid' onClick= {handleCheckout} >
           Checkout
         </Button>
-        {isCheckout && (
-          <Checkout
-            selectedSeats={selectedSeats}
-            totalPrice={totalPrice}
-            event_id={event_id}
-            user_id={user_id}
-          />
-        )}
-         {/* <Button rightIcon={<MdOutlineShoppingCartCheckout />} colorScheme='blue' variant='solid' onClick={buyTicket}>
+
+        {/* <Modal isOpen={isOpen} onClose={onClose}>
+          <Modal Overlay />
+          <ModalContent>
+            <ModalHeader>Checkout</ModalHeader>
+            <ModalCloseButton />
+
+            <ModalBody>
+              <Checkout
+                  value={value}
+                  event_id={id}
+                  user_id={userId}
+                />
+            </ModalBody>
+            <ModalFooter>
+              <Button colorScheme='blue' mr={3} onClick={onClose}>
+                Close
+              </Button>
+            </ModalFooter>
+          </ModalContent>
+        </Modal> */}
+
+        <Checkout
+        isOpen={isOpen}
+        onClose={onClose}
+                  value={value}
+                  event_id={id}
+                  user_id={userId}
+                />
+
+
+
+        {/* <Button rightIcon={<MdOutlineShoppingCartCheckout />} colorScheme='blue' variant='solid' onClick={buyTicket}>
           Checkout
         </Button> */}
       </GridItem>

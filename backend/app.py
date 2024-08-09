@@ -666,19 +666,16 @@ def get_tickets_for_user(user_id):
 
 @app.route('/inventory/buy/<user_id>', methods=['PUT'])
 def buy_ticket(user_id):
-    row_name = request.json.get('row_name')
-    seat_number = request.json.get('seat_number')
     event_id = request.json.get('event_id')
     purchase_date = date.today()
-    status = 'SOLD'
+    newStatus = 'SOLD'
+    oldStatus = 'RESERVED'
     
     conn = get_db_connection()  # Establish database connection
     cursor = conn.cursor()
     
-    cursor.execute('UPDATE Tickets SET user_id=?, status=?, purchase_date=? WHERE user_id = ? AND row_name=? AND seat_number=? AND event_id=?', (user_id, status, purchase_date, user_id, row_name, seat_number, event_id,))
-        
-    # just do it in the query
-    # get user from get jwt
+    cursor.execute('UPDATE Tickets SET status=?, purchase_date=? WHERE user_id = ? AND event_id=? AND status=?', ( newStatus, purchase_date, user_id, event_id,oldStatus))
+    
     conn.commit()  
     conn.close()
     # Close the database connection
@@ -777,8 +774,8 @@ def countdown():
     time.sleep(10)
     unreserve_ticket()
     
-# Get your key from your dashboard
-stripe.api_key = 'your-stripe-secret-key'
+# Get your secret key from your dashboard
+stripe.api_key = 'sk_test_51PlYaqKXs5h2fewWCz2ikXJXBqp0oKHKkKj70jPhMFL0olqYRjgiGh1snYr09FgrATwrEMfBFwfTiOrUTa5aClNE00adJFzMAq'# stripe secret key
 
 @app.route('/create-payment-intent', methods=['POST'])
 def create_payment_intent():
