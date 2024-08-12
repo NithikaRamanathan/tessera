@@ -1,12 +1,12 @@
 import React, { useState } from 'react';
 import { loadStripe } from '@stripe/stripe-js';
 import { Elements, CardElement, useStripe, useElements } from '@stripe/react-stripe-js';
-import { Box, Button, Input, FormControl, FormLabel, Text } from '@chakra-ui/react';
+import { Box, Button, FormControl, FormLabel, Text } from '@chakra-ui/react';
 
 // Get publishable key from your dashboard
 const stripePromise = loadStripe('pk_test_51PlYaqKXs5h2fewWaIz7S7n5kKuJkA5CXRVSyUhmyZhNFX6G5DGSWZwjlcwCfn5C4tD0ZAjB9GBL5wLo6JvGSd5900an5iRdzS');
 
-const CheckoutForm = ({ totalAmount }) => {
+const CheckoutForm = ({ totalAmount, user_id, event_id }) => {
   const stripe = useStripe();
   const elements = useElements();
   const [paymentSuccess, setPaymentSuccess] = useState(false);
@@ -45,8 +45,51 @@ const CheckoutForm = ({ totalAmount }) => {
     } else {
       if (result.paymentIntent.status === 'succeeded') {
         setPaymentSuccess(true);
+        purchaseTicket()
+
+        setTimeout(() => {
+          navigate('/events')
+        }, 5000);
       }
     }
+  };
+
+  const purchaseTicket = async () => {
+
+    try {
+      const response = await fetch(`http://localhost:5000/inventory/buy/${user_id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          event_id
+        }),
+      });
+      await response.json();
+
+      toast({
+          title: 'Purchase successful!',
+          description: 'Your tickets have been booked. You will be rerouted to events page.',
+          status: 'success',
+          duration: 1500,
+          isClosable: true
+      });
+
+      setTimeout(() => {
+          navigate('/events')
+      }, 1500);
+    } catch (error) {
+      console.error('Error purchasing: ', error);
+      toast({
+          title: 'Purchase failed',
+          description: 'Error processing your purchase. Try again later.',
+          status: 'error',
+          duration: 1500,
+          isClosable: true
+      })
+    }
+
   };
 
   return (
@@ -62,15 +105,15 @@ const CheckoutForm = ({ totalAmount }) => {
       <Button mt={4} colorScheme="blue" type="submit" disabled={!stripe}>
         Pay
       </Button>
-      {paymentSuccess && <Text mt={4} color="green.500">Payment Successful!</Text>}
+      {paymentSuccess && <Text mt={4} color="green.500">Payment Successful!</Text> }
       {error && <Text mt={4} color="red.500">{error}</Text>}
     </Box>
   );
 };
 
-const PaymentForm = ({ totalAmount, value }) => (
+const PaymentForm = ({ totalAmount, event_id, user_id }) => (
   <Elements stripe={stripePromise}>
-    <CheckoutForm totalAmount={value} />
+    <CheckoutForm totalAmount={totalAmount} event_id={event_id} user_id={user_id} />
   </Elements>
 );
 

@@ -7,6 +7,12 @@ from datetime import timedelta
 import time
 import stripe
 
+import os
+# import sendgrid
+# from sendgrid import SendGridAPIClient
+# from sendgrid.helpers.mail import Mail
+
+
 
 from flask_jwt_extended import (
     JWTManager, get_jwt, jwt_required, create_access_token,
@@ -667,6 +673,7 @@ def get_tickets_for_user(user_id):
 @app.route('/inventory/buy/<user_id>', methods=['PUT'])
 def buy_ticket(user_id):
     event_id = request.json.get('event_id')
+    
     purchase_date = date.today()
     newStatus = 'SOLD'
     oldStatus = 'RESERVED'
@@ -674,13 +681,24 @@ def buy_ticket(user_id):
     conn = get_db_connection()  # Establish database connection
     cursor = conn.cursor()
     
+    cursor.execute('SELECT row_name, seat_number FROM Tickets WHERE user_id=? AND event_id=?', (user_id,event_id,))
+    tickets = cursor.fetchall()
+    tickets_list = [dict(ticket) for ticket in tickets]
+    seats_list =[]
+    
+    for seat in tickets_list:
+        seats_list.append(f'{seat['row_name']}{seat['seat_number']}')
+    
+    
     cursor.execute('UPDATE Tickets SET status=?, purchase_date=? WHERE user_id = ? AND event_id=? AND status=?', ( newStatus, purchase_date, user_id, event_id,oldStatus))
+    # send_ticket_email('nithikar425@gmail.com', seats_list)
     
     conn.commit()  
     conn.close()
     # Close the database connection
     
-    return jsonify({'message': 'Ticket bought successfully.'})
+    return jsonify(tickets_list)
+    # return jsonify({'message': 'Ticket bought successfully.'})
 
 @app.route('/inventory/reserve/<user_id>', methods=['PUT'])
 def reserve_ticket(user_id):
@@ -706,8 +724,6 @@ def reserve_ticket(user_id):
     else:
         return jsonify({'error': 'Ticket not available'}), 404 
     
-# make an unreserve endpoint. make the user id empty
-
 @app.route('/inventory/unreserve', methods=['PUT'])
 def unreserve_ticket():
     
@@ -771,11 +787,12 @@ def get_price():
     
 # doesn't work when user manually unreserves the ticket themselves
 def countdown():
-    time.sleep(10)
+    time.sleep(300) # 5 minutes
     unreserve_ticket()
     
 # Get your secret key from your dashboard
 stripe.api_key = 'sk_test_51PlYaqKXs5h2fewWCz2ikXJXBqp0oKHKkKj70jPhMFL0olqYRjgiGh1snYr09FgrATwrEMfBFwfTiOrUTa5aClNE00adJFzMAq'# stripe secret key
+stripe.verify_ssl_certs = False
 
 @app.route('/create-payment-intent', methods=['POST'])
 def create_payment_intent():
@@ -816,6 +833,7 @@ def complete_purchase():
     
     except Exception as e:
         return jsonify(error=str(e)), 500
+    
 
 # PUT THIS AT THE END
 if __name__ == '__main__':

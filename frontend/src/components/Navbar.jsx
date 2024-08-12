@@ -6,13 +6,6 @@ import { useColorMode, useColorModeValue } from "@chakra-ui/color-mode";
 
 import ToggleColorMode from './ToggleColorMode';
 import MenuDrop from './Menu';
-import {
-  Breadcrumb,
-  BreadcrumbItem,
-  BreadcrumbLink,
-  BreadcrumbSeparator,
-} from '@chakra-ui/react'
-
 
 function Navbar() {
   const { Menu } = useColorMode()
@@ -21,28 +14,9 @@ function Navbar() {
       <Box p="2">
         <Text fontSize="xl" fontWeight="bold" color='white' as={Link} to='/events'>Tessera Events </Text>
       </Box>
-
-      {/* <Breadcrumb>
-        <BreadcrumbItem>
-          <BreadcrumbLink as={Link} to='/events'>
-            Home
-          </BreadcrumbLink>
-        </BreadcrumbItem>
-        <BreadcrumbItem>
-          <BreadcrumbLink as={Link} to='#'>
-            About
-          </BreadcrumbLink>
-        </BreadcrumbItem>
-        <BreadcrumbItem isCurrentPage>
-          <BreadcrumbLink>Contact</BreadcrumbLink>
-        </BreadcrumbItem>
-      </Breadcrumb> */}
-
-
-
       <Spacer />
       <Box>
-        <ToggleColorMode />        
+        <ToggleColorMode />
       </Box>
       <MenuDrop />
 

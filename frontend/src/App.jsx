@@ -16,7 +16,7 @@ function App() {
     <ChakraProvider>
       <Router>
         <AppContent />
-        <PaymentForm totalAmount={totalAmount} />
+        {/* <PaymentForm totalAmount={totalAmount} /> */}
       </Router>
     </ChakraProvider>
   );
