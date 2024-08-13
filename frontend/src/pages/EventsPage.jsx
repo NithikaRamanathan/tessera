@@ -9,19 +9,22 @@ function EventsPage() {
   // Filtering
   const today = new Date();
   today.setDate(today.getDate());
+  const [date, setDateFromChild] = useState("");
+  const [name, setNameFromChild] = useState("");
+  const[location, setLocationFromChild ] = useState("");
 
-  const [afterDate, setDataFromChild] = useState("");
-  function handleDataFromChild(afterDate) {
-    setDataFromChild(afterDate);
+  function handleDataFromChild(date, name, location) {
+    setDateFromChild(date);
+    setNameFromChild(name);
+    setLocationFromChild(location);
   }
 
   useEffect(() => {
-    fetch(`http://localhost:5000/events?afterDate=${afterDate}`)
+    fetch(`http://localhost:5000/events?date=${date}&name=${name}&location=${location}`)
       .then(response => response.json())
       .then(setEvents)
-      .catch(error => console.error('Error fetching events:', error))
-;
-  }, [afterDate]);
+      .catch(error => console.error('Error fetching events:', error));
+  }, [date, name, location]);
   
   return (
     <Container maxW='container.lg' centerContent paddingTop = '4'>

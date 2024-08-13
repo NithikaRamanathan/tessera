@@ -6,6 +6,9 @@ from werkzeug.security import generate_password_hash, check_password_hash # need
 from datetime import timedelta
 import time
 import stripe
+import smtplib
+from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
 
 import os
 # import sendgrid
@@ -59,21 +62,27 @@ def get_events():
   query_conditions = []
   
   # Check for the 'afterDate' filter
-  after_date = request.args.get('afterDate')
-  if after_date:
+  date = request.args.get('date')
+  if date:
       query_conditions.append('date > ?')
-      params.append(after_date)
-  
-  # Check for the 'location' filter
+      params.append(date)
+    
+ # Check for the 'name' filter
+  name = request.args.get('name')
+  if name:
+      query_conditions.append('name = ?')
+      params.append(name)
+      
+ # Check for the 'location' filter
   location = request.args.get('location')
   if location:
       query_conditions.append('location = ?')
       params.append(location)
-
+      
   # Add WHERE clause if conditions are present
   if query_conditions:
       query += ' WHERE ' + ' AND '.join(query_conditions)
-  
+    
   # Execute the query with the specified conditions
   cursor.execute(query, params)
   events = cursor.fetchall()
@@ -511,7 +520,6 @@ def award_ticket():
 # create the endpoint where the information is actually in the url
 @app.route('/events/<event_id>', methods=['GET'])
 @jwt_required()
-
 def get_event_with_id(event_id):
     try:
             conn = get_db_connection()
@@ -534,7 +542,6 @@ def account_info():
     jwt = get_jwt()
     user_id = jwt['sub']['user_id']
    
-    
     try:
             conn = get_db_connection()
             cursor = conn.cursor()
@@ -636,11 +643,7 @@ def get_tickets():
 def get_tickets_for_event(event_id):
     conn = get_db_connection()  # Establish database connection
     cursor = conn.cursor()
-    
-    # SQL query to select all users
-    # cursor.execute('SELECT row_name, seat_number, event_id, status, pricecode FROM Tickets WHERE event_id=?', (event_id))
-    
-    #
+
     cursor.execute('SELECT row_name, seat_number, status, value FROM Tickets JOIN Prices ON Tickets.pricecode = Prices.pricecode AND Tickets.event_id = Prices.event_id WHERE Tickets.event_id=?', (event_id))
     
     tickets = cursor.fetchall()  # Fetch all users
@@ -651,7 +654,6 @@ def get_tickets_for_event(event_id):
     conn.close()  # Close the database connection
     
     return jsonify(tickets_list)  # Return the list of events as JSON
-
 
 
 @app.route('/inventory/tickets/<user_id>', methods=['GET'])
@@ -681,25 +683,61 @@ def buy_ticket(user_id):
     conn = get_db_connection()  # Establish database connection
     cursor = conn.cursor()
     
-    cursor.execute('SELECT row_name, seat_number FROM Tickets WHERE user_id=? AND event_id=?', (user_id,event_id,))
+   
+    
+    # updating backend by setting status to sold
+    cursor.execute('UPDATE Tickets SET status=?, purchase_date=? WHERE user_id = ? AND event_id=? AND status=?', ( newStatus, purchase_date, user_id, event_id, oldStatus))
+    conn.commit() 
+    
+    cursor.execute('SELECT row_name, seat_number FROM Tickets WHERE user_id=? AND event_id=? AND status=?', (user_id,event_id,newStatus))
     tickets = cursor.fetchall()
     tickets_list = [dict(ticket) for ticket in tickets]
     seats_list =[]
     
     for seat in tickets_list:
-        seats_list.append(f'{seat['row_name']}{seat['seat_number']}')
+        seats_list.append(f'{seat['row_name']}{seat['seat_number']}')    
+        
+    formatted_seats_list = ', '.join(seats_list)
     
+    # send email
+    cursor.execute('SELECT email FROM Users WHERE user_id=?', (user_id,))
+    email = cursor.fetchone()
     
-    cursor.execute('UPDATE Tickets SET status=?, purchase_date=? WHERE user_id = ? AND event_id=? AND status=?', ( newStatus, purchase_date, user_id, event_id,oldStatus))
-    # send_ticket_email('nithikar425@gmail.com', seats_list)
+    cursor.execute('SELECT name FROM Events WHERE event_id=?', (event_id,))
+    name = cursor.fetchone()
+    subject = f'Purchase Confirmation for {name["name"]}'
+    body = f'This is the confirmation email for {name["name"]}. You have purchased the following seats {formatted_seats_list}.'
     
-    conn.commit()  
+    send_email(email["email"], subject, body)  
+    
+     
     conn.close()
     # Close the database connection
     
     return jsonify(tickets_list)
-    # return jsonify({'message': 'Ticket bought successfully.'})
 
+
+@app.route('/inventory/display/<user_id>', methods=['GET'])
+def bought_seats(user_id):
+    status='SOLD'
+    
+    conn = get_db_connection()  # Establish database connection
+    cursor = conn.cursor()
+    
+    cursor.execute('SELECT row_name, seat_number FROM Tickets WHERE user_id=? AND status=?', (user_id,status))
+    tickets = cursor.fetchall()
+    tickets_list = [dict(ticket) for ticket in tickets]
+    seats_list =[]
+    
+    for seat in tickets_list:
+        seats_list.append(f'{seat['row_name']}{seat['seat_number']}')    
+
+    conn.close()
+    # Close the database connection
+    
+    return jsonify(seats_list)
+    
+    
 @app.route('/inventory/reserve/<user_id>', methods=['PUT'])
 def reserve_ticket(user_id):
     row_name = request.json.get('row')
@@ -834,6 +872,31 @@ def complete_purchase():
     except Exception as e:
         return jsonify(error=str(e)), 500
     
+def send_email(to_email, subject, body):
+    # Gmail account credentials
+    from_email = 'nithikar425@gmail.com'
+    from_password = 'bcev gmkc xvsg ujaw'  
+
+    # Setup the MIME
+    msg = MIMEMultipart()
+    msg['From'] = from_email
+    msg['To'] = to_email
+    msg['Subject'] = subject
+
+    # Attach the email body
+    msg.attach(MIMEText(body, 'plain'))
+
+    try:
+        # Connect to the Gmail SMTP server
+        server = smtplib.SMTP('smtp.gmail.com', 587)
+        server.starttls()  # Secure the connection
+        server.login(from_email, from_password)  
+        text = msg.as_string()  # Convert the message to a string
+        server.sendmail(from_email, to_email, text)  # Send the email
+        server.quit()  # Close the connection
+        # print(f"Email sent to {to_email} successfully.")
+    except Exception as e:
+        print(f"Failed to send email. Error: {e}")
 
 # PUT THIS AT THE END
 if __name__ == '__main__':

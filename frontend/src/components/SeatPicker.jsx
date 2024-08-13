@@ -8,9 +8,7 @@ function SeatPicker({ event_id, user_id, callback_function }) {
     const [loading, setLoading] = useState(true);
     const [tickets, setTickets] = useState([]);
     const [rows, setRows] = useState([]);
-    const[totalPrice, setTotalPrice] = useState(0);
     let add = true;
-
 
     // fetch the tickets (seats) when the event_id changes
     useEffect(() => {
@@ -36,9 +34,9 @@ function SeatPicker({ event_id, user_id, callback_function }) {
                 const rId = c.row_name;
                 const seat_info = {
                     id: c.row_name.concat(c.seat_number), // this is the unique id for the seat
-                    number: c.seat_number, 
-                    isReserved: (c.status == "AVAILABLE") ? false : true, 
-                    tooltip: "$".concat(c.value),                
+                    number: c.seat_number,
+                    isReserved: (c.status == "AVAILABLE") ? false : true,
+                    tooltip: "$".concat(c.value),
                 }
 
                 // accumulating the seats into rows
@@ -57,17 +55,6 @@ function SeatPicker({ event_id, user_id, callback_function }) {
             setLoading(false)
         }
     }, [tickets]); // dependency- runs when tickets chance
-
-    // function to fetch seat price based on the row, number, and event_id
-    // const fetchSeatPrice = async (row, number, event_id) => {
-    //     const response = await fetch(`http://localhost:5000/get_price?row=${row}&number=${number}&event_id=${event_id}`, {
-    //         method: 'GET',
-    //         headers: {
-    //             'Content-Type': 'application/json'
-    //         }
-    //     });
-    //     return response.json();
-    // };
 
     // id is seat id
     const addSeatCallback = async ({ row, number, id }, addCb) => {
@@ -88,23 +75,16 @@ function SeatPicker({ event_id, user_id, callback_function }) {
                 })
             });
 
-            // notes: add button to checkout and reroute them
-            // python timers to run code every x minutes
-            // separate python script that unlocks all the seats when given the event_id
-
             // limitations when two people acces the same page at the same time
-            // check if youre logged in and get user id from there. dont render anything in the event details page if you arent logged in
 
             // Assuming everything went well...
             setSelected((prevItems) => [...prevItems, id]);
 
-            // update state
-            // setTotalPrice(prevValue => prevValue + price);
             const updateTooltipValue = 'Added to cart';
             callback_function(row, number, add)
             // Important to call this function if the seat was successfully selected - it helps update the screen
             addCb(row, number, id, updateTooltipValue);
-            
+
         } catch (error) {
             // Handle any errors here
             console.error('Error adding seat:', error);
@@ -116,7 +96,6 @@ function SeatPicker({ event_id, user_id, callback_function }) {
     const removeSeatCallback = async ({ row, number, id }, removeCb) => {
         setLoading(true);
         add = false;
-        // const price = await fetchSeatPrice(row, number, event_id);
 
         try {
             // Your custom logic to remove the seat goes here...
@@ -134,7 +113,6 @@ function SeatPicker({ event_id, user_id, callback_function }) {
 
             setSelected((list) => list.filter((item) => item !== id));
             callback_function(row, number, add)
-            // setTotalPrice(prevValue => prevValue - price); // update totalPrice state by subtracting
             removeCb(row, number);
         } catch (error) {
             // Handle any errors here
@@ -155,8 +133,12 @@ function SeatPicker({ event_id, user_id, callback_function }) {
             alpha
             visible
             loading={loading}
+            seatStyle={{ backgroundColor: 'lightgreen', borderRadius: '5px' }}
+            stageStyle={{ backgroundColor: 'DarkGray', height:'40px' }}
+            containerClassName="custom-container"
+            stageClassName="custom-stage"
         />
-        
+
     );
 }
 

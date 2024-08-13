@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { loadStripe } from '@stripe/stripe-js';
 import { Elements, CardElement, useStripe, useElements } from '@stripe/react-stripe-js';
-import { Box, Button, FormControl, FormLabel, Text } from '@chakra-ui/react';
+import { Box, Button, FormControl, FormLabel, Text, useToast } from '@chakra-ui/react';
+import { useNavigate } from 'react-router-dom';
 
 // Get publishable key from your dashboard
 const stripePromise = loadStripe('pk_test_51PlYaqKXs5h2fewWaIz7S7n5kKuJkA5CXRVSyUhmyZhNFX6G5DGSWZwjlcwCfn5C4tD0ZAjB9GBL5wLo6JvGSd5900an5iRdzS');
@@ -9,6 +10,8 @@ const stripePromise = loadStripe('pk_test_51PlYaqKXs5h2fewWaIz7S7n5kKuJkA5CXRVSy
 const CheckoutForm = ({ totalAmount, user_id, event_id }) => {
   const stripe = useStripe();
   const elements = useElements();
+  const toast = useToast();
+  const navigate = useNavigate();
   const [paymentSuccess, setPaymentSuccess] = useState(false);
   const [error, setError] = useState(null);
 
@@ -72,13 +75,13 @@ const CheckoutForm = ({ totalAmount, user_id, event_id }) => {
           title: 'Purchase successful!',
           description: 'Your tickets have been booked. You will be rerouted to events page.',
           status: 'success',
-          duration: 1500,
+          duration: 2000,
           isClosable: true
       });
 
       setTimeout(() => {
           navigate('/events')
-      }, 1500);
+      }, 2000);
     } catch (error) {
       console.error('Error purchasing: ', error);
       toast({

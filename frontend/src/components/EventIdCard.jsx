@@ -1,13 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Grid, GridItem, Flex, Box, VStack, Spacer, Button, Image, Text, Stack, HStack, Container, Center, useDisclosure, Table,
-  Thead,
-  Tbody,
-  Tfoot,
-  Tr,
-  Th,
-  Td,
-  TableCaption,
-  TableContainer } from '@chakra-ui/react';
+import { Grid, GridItem, Flex, Box, VStack, Spacer, Button, Image, Text, Stack, HStack, Container, Center, useDisclosure } from '@chakra-ui/react';
 import { useNavigate } from 'react-router-dom';
 import { useColorMode, useColorModeValue } from "@chakra-ui/color-mode";
 import SeatPicker from '../components/SeatPicker';
@@ -24,12 +16,9 @@ function EventIdCard({ id, time, name, date, location, imageUrl, description }) 
   const [userId, setUserId] = useState("")
   const [value, setValue] = useState(0)
 
-
   const { isOpen, onOpen, onClose } = useDisclosure();
 
   const navigate = useNavigate();
-
-
 
   const fetchSeatPrice = async (row, number, add) => {
     await fetch(`http://localhost:5000/get_price?row=${row}&number=${number}&event_id=${id}`, {
@@ -51,7 +40,6 @@ function EventIdCard({ id, time, name, date, location, imageUrl, description }) 
 
   };
 
-
   useEffect(() => {
     fetch(`http://localhost:5000/users/current`, { credentials: 'include' })
       .then(response => response.json())
@@ -63,19 +51,16 @@ function EventIdCard({ id, time, name, date, location, imageUrl, description }) 
     onOpen();
   };
 
-
-
   return (
     <Grid
       h='100vh'
       marginTop='78px'
       justifyContent='center'
       templateColumns='repeat(11,1fr)'
-      templateRows='repeat(9, 1fr)'
+      templateRows='repeat(10, 1fr)'
     >
-      <GridItem rowSpan={4} bg='gray' colSpan={11}>
+      <GridItem rowSpan={5} bg='gray' colSpan={11}>
 
-        {/* current user id: {userId} */}
         <Box
           position="relative"
           // bgImage="url('https://www.utep.edu/extendeduniversity/utepconnect/blog/june-2019/how-an-online-degree-can-prepare-you-for-remote-positions.jpg')"
@@ -114,7 +99,7 @@ function EventIdCard({ id, time, name, date, location, imageUrl, description }) 
         </Box>
 
       </GridItem>
-      <GridItem borderRight='solid'rowSpan={4} colSpan={1} />
+      <GridItem borderRight='solid'rowSpan={5} colSpan={1} />
 
       <GridItem p='15px' alignContent='center' borderBottom='solid' rowSpan={1} colSpan={9}>
         {/* <Flex>date, time, price range</Flex> */}
@@ -125,11 +110,11 @@ function EventIdCard({ id, time, name, date, location, imageUrl, description }) 
           </Stack>
 
       </GridItem>
-      <GridItem rowSpan={4} colSpan={1} borderLeft='solid' />
+      <GridItem rowSpan={5} colSpan={1} borderLeft='solid' />
 
-      <GridItem p='10px' rowSpan={3} colSpan={6} bg='blue.700'>
+      <GridItem p='10px' rowSpan={4} colSpan={6}>
         <Flex>{description}</Flex>
-
+        
         <SeatPicker
           event_id={id}
           user_id={userId}
@@ -137,7 +122,7 @@ function EventIdCard({ id, time, name, date, location, imageUrl, description }) 
         />
 
       </GridItem>
-      <GridItem p='10px' rowSpan={3} colSpan={3} borderLeft='solid'>
+      <GridItem p='10px' rowSpan={4} colSpan={3} borderLeft='solid'>
 
         <Flex>Price: ${value}</Flex>
 
@@ -158,7 +143,7 @@ function EventIdCard({ id, time, name, date, location, imageUrl, description }) 
         />
 
       </GridItem>
-      <GridItem bg='gray' rowSpan={1} colSpan={11}></GridItem>
+      {/* <GridItem bg='gray' rowSpan={1} colSpan={11}></GridItem> */}
 
     </Grid>
   );

@@ -49,6 +49,7 @@ import { ViewIcon, ViewOffIcon, EditIcon } from '@chakra-ui/icons';
 const AccountBox = ({ firstName, lastName, email, avatarUrl, username, user_id }) => {
     const [invalid, setInvalid] = useState(false);
     const navigate = useNavigate();
+    const [tickets, setTickets] = useState([])
 
 
     async function fetchLogout() {
@@ -66,6 +67,34 @@ const AccountBox = ({ firstName, lastName, email, avatarUrl, username, user_id }
             })
             .catch(error => console.error(('Error fetching events:', error)), []);
     }
+    // useEffect(() => {
+    //     fetch(`http://localhost:5000/inventory/display/${user_id}`)
+    //     .then(response => response.json())
+    //     .then(setTickets)
+    //     .catch(error => console.error('Error fetching:', error));
+    // }, []);
+
+//   const displayBoughtTickets = async () => {
+
+//     try {
+//       const response = await fetch(`http://localhost:5000/inventory/buy/${user_id}`, {
+//         method: 'POST',
+//         headers: {
+//           'Content-Type': 'application/json',
+//         },
+//         body: JSON.stringify({
+//           event_id
+//         }),
+//       });
+//       await response.json();
+
+
+//     } catch (error) {
+//       console.error('Error purchasing: ', error);
+    
+//     }
+
+//   };
 
     return (
         <Card
@@ -114,6 +143,21 @@ const AccountBox = ({ firstName, lastName, email, avatarUrl, username, user_id }
                                 <Td>Role</Td>
                                 <Td>TBD</Td>
                             </Tr>
+                        </Tbody>
+
+                    </Table>
+                </TableContainer>
+
+                <Heading as='h2' size='md' paddingStart='5px' paddingTop='15px'>Tickets Bought</Heading>
+
+                <TableContainer paddingTop='15px'>
+                    <Table variant='striped' colorScheme='gray' size='lg'>
+                        <Tbody>
+                            <Tr>
+                                <Td>Event Name</Td>
+                                <Td>seats</Td>
+                            </Tr>
+ 
                         </Tbody>
 
                     </Table>
