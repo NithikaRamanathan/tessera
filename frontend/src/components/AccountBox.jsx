@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
     Heading,
     Input,
@@ -9,17 +9,7 @@ import {
     chakra,
     Box, Link as ChakraLink,
     InputRightElement, Grid, GridItem,
-    Center, VStack, HStack, Spacer, Text, Image, Flex, SimpleGrid, Wrap, WrapItem, Avatar
-} from "@chakra-ui/react";
-import { Link, useNavigate } from 'react-router-dom';
-import {
-    Alert,
-    AlertIcon,
-    AlertTitle,
-    AlertDescription,
-} from '@chakra-ui/react'
-import {
-    Table,
+    Center, VStack, HStack, Spacer, Text, Image, Flex, SimpleGrid, Wrap, WrapItem, Avatar, Table,
     Thead,
     Tbody,
     Tfoot,
@@ -27,26 +17,19 @@ import {
     Th,
     Td,
     TableCaption,
-    TableContainer,
-} from '@chakra-ui/react'
-import { Card, CardHeader, CardBody, CardFooter, Divider } from '@chakra-ui/react'
-import { FaUserAlt, FaLock } from "react-icons/fa";
-import { FaSignOutAlt } from "react-icons/fa";
+    TableContainer, Card, CardHeader, CardBody, CardFooter, Divider
+} from "@chakra-ui/react";
+import { Link, useNavigate } from 'react-router-dom';
+import { FaUserAlt, FaLock, FaSignOutAlt } from "react-icons/fa";
 import { useColorModeValue } from "@chakra-ui/color-mode";
-import {
-    FormControl,
-    FormLabel,
-    FormErrorMessage,
-    FormHelperText,
-} from '@chakra-ui/react'
-
 // icons
 const CFaUserAlt = chakra(FaUserAlt);
 const CFaLock = chakra(FaLock);
-import { ViewIcon, ViewOffIcon, EditIcon } from '@chakra-ui/icons';
+import { EditIcon } from '@chakra-ui/icons';
+import TicketsBoughtTable from './TicketsBoughtTable';
 
 
-const AccountBox = ({ firstName, lastName, email, avatarUrl, username, user_id }) => {
+const AccountBox = ({ userId, firstName, lastName, email, avatarUrl, username }) => {
     const [invalid, setInvalid] = useState(false);
     const navigate = useNavigate();
     const [tickets, setTickets] = useState([])
@@ -67,34 +50,38 @@ const AccountBox = ({ firstName, lastName, email, avatarUrl, username, user_id }
             })
             .catch(error => console.error(('Error fetching events:', error)), []);
     }
-    // useEffect(() => {
-    //     fetch(`http://localhost:5000/inventory/display/${user_id}`)
-    //     .then(response => response.json())
-    //     .then(setTickets)
-    //     .catch(error => console.error('Error fetching:', error));
-    // }, []);
 
-//   const displayBoughtTickets = async () => {
+    useEffect(() => {
+        fetch(`http://localhost:5000/inventory/display/${userId}`, {
+            credentials: 'include'
+        })
+            .then(response => response.json())
+            .then(setTickets)
 
-//     try {
-//       const response = await fetch(`http://localhost:5000/inventory/buy/${user_id}`, {
-//         method: 'POST',
-//         headers: {
-//           'Content-Type': 'application/json',
-//         },
-//         body: JSON.stringify({
-//           event_id
-//         }),
-//       });
-//       await response.json();
+            .catch(error => console.error('Error fetching:', error));
+    }, []);
+
+    //   const displayBoughtTickets = async () => {
+
+    //     try {
+    //       const response = await fetch(`http://localhost:5000/inventory/buy/${user_id}`, {
+    //         method: 'POST',
+    //         headers: {
+    //           'Content-Type': 'application/json',
+    //         },
+    //         body: JSON.stringify({
+    //           event_id
+    //         }),
+    //       });
+    //       await response.json();
 
 
-//     } catch (error) {
-//       console.error('Error purchasing: ', error);
-    
-//     }
+    //     } catch (error) {
+    //       console.error('Error purchasing: ', error);
 
-//   };
+    //     }
+
+    //   };
 
     return (
         <Card
@@ -116,8 +103,9 @@ const AccountBox = ({ firstName, lastName, email, avatarUrl, username, user_id }
                     <VStack paddingStart='25px' alignItems='left'>
                         <Heading> {firstName} {lastName}</Heading>
                         <Text>{email}</Text>
-
-                        <ChakraLink as={Link} to={`/update_user`}>Edit Your Information <EditIcon /></ChakraLink>
+                        <Text as='u'>
+                            <ChakraLink as={Link} to={`/update_user`}>Edit Your Information <EditIcon /></ChakraLink>
+                        </Text>
 
                     </VStack>
                 </HStack>
@@ -152,13 +140,23 @@ const AccountBox = ({ firstName, lastName, email, avatarUrl, username, user_id }
 
                 <TableContainer paddingTop='15px'>
                     <Table variant='striped' colorScheme='gray' size='lg'>
-                        <Tbody>
+                        <Thead>
                             <Tr>
-                                <Td>Event Name</Td>
-                                <Td>seats</Td>
+                                <Th>Event</Th>
+                                <Th>Event Date</Th>
+                                <Th>Seat</Th>
+                                <Th>Purchase Date</Th>
                             </Tr>
- 
-                        </Tbody>
+                        </Thead>
+                        {tickets.map(ticket => (
+                            <TicketsBoughtTable
+                                key={ticket.event_id + ticket.row_name + ticket.seat_number}
+                                eventId={ticket.event_id}
+                                rowName={ticket.row_name}
+                                seatNumber={ticket.seat_number}
+                                purchaseDate={ticket.purchase_date}
+                            />
+                        ))}
 
                     </Table>
                 </TableContainer>

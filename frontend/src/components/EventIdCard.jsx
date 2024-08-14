@@ -1,12 +1,17 @@
 import React, { useEffect, useState } from 'react';
-import { Grid, GridItem, Flex, Box, VStack, Spacer, Button, Image, Text, Stack, HStack, Container, Center, useDisclosure } from '@chakra-ui/react';
+import {
+  Grid, GridItem, Flex, Box, Heading, VStack, Spacer, Button, Image, Text, Stack, HStack, Container, Center, useDisclosure, Tabs, TabList, TabPanels, Tab, TabPanel, Accordion,
+  AccordionItem,
+  AccordionButton,
+  AccordionPanel,
+  AccordionIcon
+} from '@chakra-ui/react';
 import { useNavigate } from 'react-router-dom';
 import { useColorMode, useColorModeValue } from "@chakra-ui/color-mode";
 import SeatPicker from '../components/SeatPicker';
-import { CalendarIcon, TimeIcon } from '@chakra-ui/icons';
+import { CalendarIcon, TimeIcon, AddIcon } from '@chakra-ui/icons';
 import { MdOutlineShoppingCartCheckout, MdLocationPin } from "react-icons/md";
 import Checkout from './Checkout';
-
 
 function EventIdCard({ id, time, name, date, location, imageUrl, description }) {
   const text = useColorModeValue('white', 'gray.700');
@@ -57,9 +62,9 @@ function EventIdCard({ id, time, name, date, location, imageUrl, description }) 
       marginTop='78px'
       justifyContent='center'
       templateColumns='repeat(11,1fr)'
-      templateRows='repeat(10, 1fr)'
+      templateRows='repeat(21, 1fr)'
     >
-      <GridItem rowSpan={5} bg='gray' colSpan={11}>
+      <GridItem rowSpan={10} bg='gray' colSpan={11}>
 
         <Box
           position="relative"
@@ -92,47 +97,92 @@ function EventIdCard({ id, time, name, date, location, imageUrl, description }) 
             justifyContent="center"
             minH={80}
           >
-            <Text as="b" fontSize="4xl">
-              {name}
-            </Text>
+            <VStack paddingTop='20px'>
+              <Text as="b" fontSize="4xl" color='gray.100'>
+                {name}
+              </Text>
+              <Text as="b" fontSize="lg" color='gray.100'>
+                {date}
+              </Text>
+            </VStack>
           </Center>
         </Box>
 
       </GridItem>
-      <GridItem borderRight='solid'rowSpan={5} colSpan={1} />
 
-      <GridItem p='15px' alignContent='center' borderBottom='solid' rowSpan={1} colSpan={9}>
-        {/* <Flex>date, time, price range</Flex> */}
-          <Stack >
-            <Text><CalendarIcon /> {date}</Text>
-            <Text><TimeIcon /> {time}</Text>
-            <HStack><MdLocationPin /><Text>{location} </Text></HStack>
-          </Stack>
+      {/* Left side margin */}
+      <GridItem rowSpan={10} colSpan={1} />
+
+      <GridItem p='15px' paddingTop='30px' paddingBottom='25px' alignContent='center' borderBottom='solid' borderColor='gray' rowSpan={1} colSpan={9}>
+        <Stack>
+          <HStack spacing='30px'>
+            <Stack><Text><CalendarIcon color='blue.500' /> {date}</Text>
+              <Text><TimeIcon color='blue.500' /> {time}</Text></Stack>
+            <Stack>
+              <HStack spacing='1px'><MdLocationPin style={{ color: '#2982B4' }} /><Text>{location} </Text></HStack>
+              <Spacer />
+              <Spacer />
+              <Spacer />
+              <Spacer />
+            </Stack>
+            <Stack paddingLeft='50px' spacing='0' paddingBottom='14px'>
+              <Flex fontSize='xs'>Price</Flex>
+              <Heading size='md' color='blue.500'>$30-$100</Heading>
+            </Stack>
+
+
+          </HStack>
+
+
+        </Stack>
 
       </GridItem>
-      <GridItem rowSpan={5} colSpan={1} borderLeft='solid' />
 
-      <GridItem p='10px' rowSpan={4} colSpan={6}>
-        <Flex>{description}</Flex>
-        
+      {/* right side margin */}
+      <GridItem rowSpan={10} colSpan={1} />
+
+
+      <GridItem p='10px' rowSpan={10} colSpan={5}>
+        <Heading paddingTop='5px' paddingBottom='7px' size='md'>Event Overview</Heading>
+        <Flex paddingBottom='50px'>{description}
+
+
+
+        </Flex>
+
+        <Box borderRadius="md" width='70%' bg='black' >
+          {imageUrl && (
+            <Image opacity='75%' h='300px' borderRadius="md" src={imageUrl} alt={`Image for ${name}`} objectFit="cover" width="full" />
+          )}
+
+        </Box>
+
+
+
+
+      </GridItem>
+
+
+      <GridItem p='10px' rowSpan={10} colSpan={4} borderLeft='solid' borderColor='gray'>
+        <Heading paddingTop='5px' paddingLeft='7px' paddingBottom='7px' color='gray.100' bg='blue.500' size='md'>Tickets</Heading>
         <SeatPicker
           event_id={id}
           user_id={userId}
           callback_function={fetchSeatPrice}
         />
 
-      </GridItem>
-      <GridItem p='10px' rowSpan={4} colSpan={3} borderLeft='solid'>
+        <HStack paddingTop='20px'>
+          <Text> Your total: ${value}</Text>
+          <Spacer />
+          <Button
+            rightIcon={<MdOutlineShoppingCartCheckout />}
+            colorScheme='blue'
+            variant='solid' onClick={handleCheckout} >
+            Checkout
+          </Button>
+        </HStack>
 
-        <Flex>Price: ${value}</Flex>
 
-        {/* need to call buy endpoint*/}
-        <Button
-          rightIcon={<MdOutlineShoppingCartCheckout />}
-          colorScheme='blue'
-          variant='solid' onClick={handleCheckout} >
-          Checkout
-        </Button>
 
         <Checkout
           isOpen={isOpen}
@@ -142,8 +192,49 @@ function EventIdCard({ id, time, name, date, location, imageUrl, description }) 
           user_id={userId}
         />
 
+        {/* <Accordion allowToggle>
+          <AccordionItem>
+            <h2>
+              <AccordionButton p='10px' bg='blue.500' color='gray.100' _hover={{bg: 'blue.400'}}>
+                <Box as='span' flex='1' textAlign='left'>
+                <Heading size='md'>Buy Tickets Now</Heading>
+                </Box>
+
+              </AccordionButton>
+            </h2>
+            <AccordionPanel pb={4}>
+              <SeatPicker
+                event_id={id}
+                user_id={userId}
+                callback_function={fetchSeatPrice}
+              />
+
+              <Flex>Your total: ${value}</Flex>
+
+              <Button
+                rightIcon={<MdOutlineShoppingCartCheckout />}
+                colorScheme='blue'
+                variant='solid' onClick={handleCheckout} >
+                Checkout
+              </Button>
+
+              <Checkout
+                isOpen={isOpen}
+                onClose={onClose}
+                value={value}
+                event_id={id}
+                user_id={userId}
+              />
+            </AccordionPanel>
+          </AccordionItem>
+
+
+        </Accordion>
+ */}
+
+
+
       </GridItem>
-      {/* <GridItem bg='gray' rowSpan={1} colSpan={11}></GridItem> */}
 
     </Grid>
   );

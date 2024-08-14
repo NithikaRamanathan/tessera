@@ -18,6 +18,7 @@ function Filter({ sendDataToParent }) {
     }
 
     function clearAllFilters() {
+        sendDataToParent('', '', '');
         setDate('');
         setNameFilter('');
         setLocationFilter('');

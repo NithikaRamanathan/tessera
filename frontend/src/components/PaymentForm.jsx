@@ -50,9 +50,7 @@ const CheckoutForm = ({ totalAmount, user_id, event_id }) => {
         setPaymentSuccess(true);
         purchaseTicket()
 
-        setTimeout(() => {
-          navigate('/events')
-        }, 5000);
+      
       }
     }
   };
@@ -60,7 +58,7 @@ const CheckoutForm = ({ totalAmount, user_id, event_id }) => {
   const purchaseTicket = async () => {
 
     try {
-      const response = await fetch(`http://localhost:5000/inventory/buy/${user_id}`, {
+      fetch(`http://localhost:5000/inventory/buy/${user_id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -69,18 +67,17 @@ const CheckoutForm = ({ totalAmount, user_id, event_id }) => {
           event_id
         }),
       });
-      await response.json();
 
       toast({
           title: 'Purchase successful!',
-          description: 'Your tickets have been booked. You will be rerouted to events page.',
+          description: 'Your tickets have been booked. Check your email for comfirmation of purchase.',
           status: 'success',
           duration: 2000,
           isClosable: true
       });
 
       setTimeout(() => {
-          navigate('/events')
+          navigate('/account')
       }, 2000);
     } catch (error) {
       console.error('Error purchasing: ', error);
@@ -88,9 +85,12 @@ const CheckoutForm = ({ totalAmount, user_id, event_id }) => {
           title: 'Purchase failed',
           description: 'Error processing your purchase. Try again later.',
           status: 'error',
-          duration: 1500,
+          duration: 2000,
           isClosable: true
       })
+      setTimeout(() => {
+        navigate(`/events/${event_id}`)
+    }, 2000);
     }
 
   };

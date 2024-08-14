@@ -26,7 +26,7 @@ import {
     ModalHeader,
     ModalFooter,
     ModalBody,
-    ModalCloseButton
+    ModalCloseButton, useToast
 } from "@chakra-ui/react";
 import { Link, useNavigate } from 'react-router-dom';
 
@@ -49,6 +49,7 @@ const UpdateUserBox = ({ user_id, username, email, firstName, lastName, avatarUr
     const [new_email, setNewEmail] = useState('');
     const [new_avatar_url, setNewAvatarUrl] = useState('');
     const navigate = useNavigate();
+    const toast = useToast();
 
 
     const textColor = useColorModeValue('blue.500', 'blue.200')
@@ -69,7 +70,17 @@ const UpdateUserBox = ({ user_id, username, email, firstName, lastName, avatarUr
         })
             .then(response => {
                 if (response.status == 200) {
-                    navigate('/account')
+                    toast({
+                        title: 'Changed Information Successfully',
+                        description: '',
+                        status: 'success',
+                        duration: 2000,
+                        isClosable: true
+                    });
+
+                    setTimeout(() => {
+                        navigate('/account')
+                    }, 2000);
                 } else {
                     setInvalid(true);
                 }
@@ -90,7 +101,7 @@ const UpdateUserBox = ({ user_id, username, email, firstName, lastName, avatarUr
             headers: {
                 'Content-Type': 'application/json',
             },
-            //credentials: 'include',  // Include cookies in the request
+            // credentials: 'include',  // Include cookies in the request
             body: JSON.stringify({
                 new_password: new_password,
                 curr_password: curr_password
@@ -98,13 +109,23 @@ const UpdateUserBox = ({ user_id, username, email, firstName, lastName, avatarUr
 
 
         })
-            // .then(response => {
-            //     if (response.status == 200) {
-            //         navigate('/account')
-            //     } else {
-            //         setInvalid(true);
-            //     }
-            // })
+            .then(response => {
+                if (response.status == 200) {
+                    toast({
+                        title: 'Changed Password Successfully',
+                        description: 'Rerouting to login page',
+                        status: 'success',
+                        duration: 2000,
+                        isClosable: true
+                    });
+
+                    setTimeout(() => {
+                        navigate('/login')
+                    }, 2000);
+                } else {
+                    setInvalid(true);
+                }
+            })
             .catch(error => console.error(('Error fetching events:', error)), []);
     }
 
@@ -129,9 +150,7 @@ const UpdateUserBox = ({ user_id, username, email, firstName, lastName, avatarUr
                 <HStack p='15px'>
                     <Wrap>
                         <WrapItem>
-
                             <Avatar borderWidth='1px' borderColor='black' size='2xl' src={`${avatarUrl}`} />
-
                         </WrapItem>
                     </Wrap>
 
@@ -139,8 +158,10 @@ const UpdateUserBox = ({ user_id, username, email, firstName, lastName, avatarUr
                     <VStack paddingStart='25px' alignItems='left'>
                         <Heading> {firstName} {lastName}</Heading>
 
+                        <Text as='u'>
+                            <ChakraLink as={Link} to={`/account`}><ArrowBackIcon />Back to account info </ChakraLink>
+                        </Text>
 
-                        <ChakraLink as={Link} to={`/account`}><ArrowBackIcon />Back to account info </ChakraLink>
 
                     </VStack>
 
@@ -235,8 +256,8 @@ const UpdateUserBox = ({ user_id, username, email, firstName, lastName, avatarUr
                 <Flex padding='20px' justifyContent='right'>
                     <Button
                         rightIcon={<GrUpdate />}
-                        colorScheme='blue'
-                        variant='outline'
+                        colorScheme='gray'
+                        
                         onClick={fetchUpdateUser}
                     >
                         Update

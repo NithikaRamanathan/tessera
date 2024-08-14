@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import TesseraSeatPicker from 'tessera-seat-picker';
 import { Grid, GridItem, Box, Button, Flex, Card, VStack, HStack } from '@chakra-ui/react';
+import '../../style.css'
 
 
 function SeatPicker({ event_id, user_id, callback_function }) {
@@ -22,6 +23,7 @@ function SeatPicker({ event_id, user_id, callback_function }) {
             .then(data => {
                 setTickets(data) // update the use state with the fetched tickets
             }
+            
             ).catch(error => console.error('Error fetching:', error));
     }, [event_id]); // dependency is event_id so this useeffect runs when the event_id changes
 

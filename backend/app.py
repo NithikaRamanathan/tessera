@@ -410,7 +410,6 @@ def get_emails():
 
 
 @app.route('/users/change_password/<user_id>', methods=['PUT'])
-# @jwt_required()
 def update_password(user_id):
 
     # Extract username, current password, and new password from the JSON payload
@@ -716,7 +715,7 @@ def buy_ticket(user_id):
     
     return jsonify(tickets_list)
 
-
+# display tickets for a specific user
 @app.route('/inventory/display/<user_id>', methods=['GET'])
 def bought_seats(user_id):
     status='SOLD'
@@ -724,18 +723,15 @@ def bought_seats(user_id):
     conn = get_db_connection()  # Establish database connection
     cursor = conn.cursor()
     
-    cursor.execute('SELECT row_name, seat_number FROM Tickets WHERE user_id=? AND status=?', (user_id,status))
+    cursor.execute('SELECT event_id, row_name, seat_number, purchase_date FROM Tickets WHERE user_id=? AND status=?', (user_id,status))
     tickets = cursor.fetchall()
     tickets_list = [dict(ticket) for ticket in tickets]
-    seats_list =[]
     
-    for seat in tickets_list:
-        seats_list.append(f'{seat['row_name']}{seat['seat_number']}')    
 
     conn.close()
     # Close the database connection
     
-    return jsonify(seats_list)
+    return jsonify(tickets_list)
     
     
 @app.route('/inventory/reserve/<user_id>', methods=['PUT'])

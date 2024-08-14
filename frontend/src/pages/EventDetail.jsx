@@ -18,7 +18,7 @@ function EventDetail() {
 
   return (
     
-    <Grid >
+    <Grid paddingBottom='20px'>
       {events.map(event => (
         <EventIdCard
           key={event.event_id}
