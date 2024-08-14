@@ -22,8 +22,27 @@ function EventIdCard({ id, time, name, date, location, imageUrl, description }) 
   const [value, setValue] = useState(0)
 
   const { isOpen, onOpen, onClose } = useDisclosure();
+  const [priceRange, setPriceRange] = useState({min:0, max:0});
 
   const navigate = useNavigate();
+  const fetchSeatPricesRange = async () => {
+    try {
+      const response = await fetch(`http://localhost:5000/get_seat_prices?event_id=${id}`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      });
+      const prices = await response.json();
+
+      const minPrice = Math.min(...prices); // spread into correct format
+        const maxPrice = Math.max(...prices);
+        setPriceRange({min: minPrice, max: maxPrice});
+      
+    } catch (error) {
+      console.error('Error fetching', error);
+    }
+  };
 
   const fetchSeatPrice = async (row, number, add) => {
     await fetch(`http://localhost:5000/get_price?row=${row}&number=${number}&event_id=${id}`, {
@@ -46,6 +65,7 @@ function EventIdCard({ id, time, name, date, location, imageUrl, description }) 
   };
 
   useEffect(() => {
+    fetchSeatPricesRange();
     fetch(`http://localhost:5000/users/current`, { credentials: 'include' })
       .then(response => response.json())
       .then(data => setUserId(data))
@@ -58,11 +78,10 @@ function EventIdCard({ id, time, name, date, location, imageUrl, description }) 
 
   return (
     <Grid
-      h='100vh'
       marginTop='78px'
       justifyContent='center'
       templateColumns='repeat(11,1fr)'
-      templateRows='repeat(21, 1fr)'
+      templateRows='repeat(10, 1fr)'
     >
       <GridItem rowSpan={10} bg='gray' colSpan={11}>
 
@@ -127,7 +146,7 @@ function EventIdCard({ id, time, name, date, location, imageUrl, description }) 
             </Stack>
             <Stack paddingLeft='50px' spacing='0' paddingBottom='14px'>
               <Flex fontSize='xs'>Price</Flex>
-              <Heading size='md' color='blue.500'>$30-$100</Heading>
+              <Heading size='md' color='blue.500'>${priceRange.min}-${priceRange.max}</Heading>
             </Stack>
 
 
@@ -152,7 +171,7 @@ function EventIdCard({ id, time, name, date, location, imageUrl, description }) 
 
         <Box borderRadius="md" width='70%' bg='black' >
           {imageUrl && (
-            <Image opacity='75%' h='300px' borderRadius="md" src={imageUrl} alt={`Image for ${name}`} objectFit="cover" width="full" />
+            <Image opacity='75%' borderRadius="md" src={imageUrl} alt={`Image for ${name}`} objectFit="contain" width="full" />
           )}
 
         </Box>

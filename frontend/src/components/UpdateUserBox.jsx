@@ -51,6 +51,10 @@ const UpdateUserBox = ({ user_id, username, email, firstName, lastName, avatarUr
     const navigate = useNavigate();
     const toast = useToast();
 
+    const [confirmPassword, setConfirmPassword] = useState('');
+    const [new_password, setNewPassword] = useState('');
+    const [curr_password, setCurrPassword] = useState('');
+    const passwordsMatch = new_password === confirmPassword;
 
     const textColor = useColorModeValue('blue.500', 'blue.200')
 
@@ -92,10 +96,13 @@ const UpdateUserBox = ({ user_id, username, email, firstName, lastName, avatarUr
 
     const initialRef = useRef(null)
     const finalRef = useRef(null)
-    const [new_password, setNewPassword] = useState('');
-    const [curr_password, setCurrPassword] = useState('');
+    
 
     async function fetchChangePass() {
+        if (!passwordsMatch) {
+            return; // return if the new password doesn't match confirm password
+        }
+        
         const response = await fetch(`http://localhost:5000/users/change_password/${user_id}`, {
             method: 'PUT',
             headers: {
@@ -128,12 +135,6 @@ const UpdateUserBox = ({ user_id, username, email, firstName, lastName, avatarUr
             })
             .catch(error => console.error(('Error fetching events:', error)), []);
     }
-
-
-
-
-
-
 
     return (
         <Card
@@ -232,9 +233,12 @@ const UpdateUserBox = ({ user_id, username, email, firstName, lastName, avatarUr
                                                     <Input placeholder='Enter your new password' onChange={(e) => setNewPassword(e.target.value)} />
                                                 </FormControl>
 
-                                                <FormControl mt={4}>
+                                                <FormControl mt={4} isInvalid={!passwordsMatch}>
                                                     <FormLabel>Confirm New Password</FormLabel>
-                                                    <Input placeholder='Enter your new password again' />
+                                                    <Input placeholder='Enter your new password again' onChange={(e) => setConfirmPassword(e.target.value)}/>
+                                                    {
+                                                        !passwordsMatch && (<FormErrorMessage>Passwords do not match. Try again.</FormErrorMessage>)
+                                                    }
                                                 </FormControl>
                                             </ModalBody>
 

@@ -801,24 +801,23 @@ def get_price():
         return jsonify(price['value'])
     else: 
         return jsonify(0)
+ 
+@app.route('/get_seat_prices', methods=['GET'])
+def get_seat_price():
+    event_id = request.args.get('event_id')
     
-    # row_name = request.json.get('row')
-    # seat_number = request.json.get('number')
-    # event_id = request.json.get('event_id')
+    conn = get_db_connection()  # Establish database connection
+    cursor = conn.cursor()
     
-    # conn = get_db_connection()  # Establish database connection
-    # cursor = conn.cursor()
-    # cursor.execute('SELECT value FROM Tickets JOIN Prices ON Tickets.pricecode = Prices.pricecode AND Tickets.event_id = Prices.event_id WHERE Tickets.event_id=? AND Tickets.seat_number=? AND Tickets.row_name=?', (event_id,seat_number,row_name,))
+    cursor.execute('SELECT value FROM Prices WHERE event_id = ?', (event_id,))
+    prices = cursor.fetchall()
+        
+    formattedPrices = [price['value'] for price in prices]
+
+    conn.close()
     
-    # price = cursor.fetchone()  # Fetch all users
-    
-    # conn.close()
-    
-    # if price:
-    #     return jsonify(price['value'])
-    # else:
-    #     return jsonify(0)
-    
+    return jsonify(formattedPrices)
+
 # doesn't work when user manually unreserves the ticket themselves
 def countdown():
     time.sleep(300) # 5 minutes
