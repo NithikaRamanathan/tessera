@@ -98,18 +98,13 @@ def get_events():
 @app.route('/events/update', methods=['PUT'])
 def update_event():
     event_id = request.json.get('event_id')
-    # new_description = request.json.get('description')
     new_date = request.json.get('date')
-    
     
     try:
         conn = get_db_connection()
         cursor = conn.cursor()
-        
         cursor.execute('UPDATE Events SET date=? WHERE event_id=?', (new_date, event_id))
-        
         return jsonify({'message': 'Changed date successfully'}), 401
-
         
     except sqlite3.Error as e:
         return jsonify({'error': 'Database error'}), 500 
@@ -671,6 +666,7 @@ def get_tickets_for_user(user_id):
     
     return jsonify(tickets_list)  # Return the list of events as JSON
 
+# buys selected tickets for a specific user's seat(s)
 @app.route('/inventory/buy/<user_id>', methods=['PUT'])
 def buy_ticket(user_id):
     event_id = request.json.get('event_id')
@@ -681,8 +677,6 @@ def buy_ticket(user_id):
     
     conn = get_db_connection()  # Establish database connection
     cursor = conn.cursor()
-    
-   
     
     # updating backend by setting status to sold
     cursor.execute('UPDATE Tickets SET status=?, purchase_date=? WHERE user_id = ? AND event_id=? AND status=?', ( newStatus, purchase_date, user_id, event_id, oldStatus))
@@ -698,7 +692,7 @@ def buy_ticket(user_id):
         
     formatted_seats_list = ', '.join(seats_list)
     
-    # send email
+    # format contents that will go in the email
     cursor.execute('SELECT email FROM Users WHERE user_id=?', (user_id,))
     email = cursor.fetchone()
     
@@ -707,15 +701,14 @@ def buy_ticket(user_id):
     subject = f'Purchase Confirmation for {name["name"]}'
     body = f'This is the confirmation email for {name["name"]}. You have purchased the following seats {formatted_seats_list}.'
     
+    # call this function to send the email to the user
     send_email(email["email"], subject, body)  
-    
-     
+
     conn.close()
     # Close the database connection
     
     return jsonify(tickets_list)
-
-# display tickets for a specific user
+        
 @app.route('/inventory/display/<user_id>', methods=['GET'])
 def bought_seats(user_id):
     status='SOLD'
@@ -727,7 +720,6 @@ def bought_seats(user_id):
     tickets = cursor.fetchall()
     tickets_list = [dict(ticket) for ticket in tickets]
     
-
     conn.close()
     # Close the database connection
     
@@ -753,7 +745,7 @@ def reserve_ticket(user_id):
         cursor.execute('UPDATE Tickets SET user_id=?, status=? WHERE row_name=? AND seat_number=? AND event_id=?', (user_id, status, row_name, seat_number, event_id,))
         conn.commit()  
         conn.close()
-        countdown()
+        # countdown()
         return jsonify({'message': 'Ticket reserved successfully.'})
     else:
         return jsonify({'error': 'Ticket not available'}), 404 
@@ -802,7 +794,8 @@ def get_price():
     else: 
         return jsonify(0)
  
-@app.route('/get_seat_prices', methods=['GET'])
+#  get the price range of all the tickets for a specific event
+@app.route('/inventory/price_range', methods=['GET'])
 def get_seat_price():
     event_id = request.args.get('event_id')
     
@@ -870,7 +863,7 @@ def complete_purchase():
 def send_email(to_email, subject, body):
     # Gmail account credentials
     from_email = 'nithikar425@gmail.com'
-    from_password = 'bcev gmkc xvsg ujaw'  
+    from_password = 'bcev gmkc xvsg ujaw'  # create new app password and update
 
     # Setup the MIME
     msg = MIMEMultipart()
