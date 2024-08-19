@@ -30,7 +30,7 @@ function Filter({ sendDataToParent }) {
                 <InputLeftElement pointerEvents='none'>
                     <Search2Icon color={textColor} />
                 </InputLeftElement>
-                <Input rounded='0' borderColor='transparent' type='text' _placeholder={{ color: textColor }} placeholder='Search by location' onChange={(e) => setLocationFilter(e.target.value)} />
+                <Input rounded='0' borderColor='transparent' type='text' _placeholder={{ color: textColor }} value={location} placeholder='Search by location' onChange={(e) => setLocationFilter(e.target.value)} />
             </InputGroup>
 
             <Box borderLeft='solid' borderRight='solid' borderLeftColor={linesColor} borderRightColor={linesColor}>

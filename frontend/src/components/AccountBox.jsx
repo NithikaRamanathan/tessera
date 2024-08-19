@@ -32,8 +32,7 @@ import TicketsBoughtTable from './TicketsBoughtTable';
 const AccountBox = ({ userId, firstName, lastName, email, avatarUrl, username }) => {
     const [invalid, setInvalid] = useState(false);
     const navigate = useNavigate();
-    const [tickets, setTickets] = useState([])
-
+    const [tickets, setTickets] = useState([]);
 
     async function fetchLogout() {
         const response = await fetch(`http://localhost:5000/logout`, {
@@ -61,36 +60,14 @@ const AccountBox = ({ userId, firstName, lastName, email, avatarUrl, username })
             .catch(error => console.error('Error fetching:', error));
     }, []);
 
-    //   const displayBoughtTickets = async () => {
-
-    //     try {
-    //       const response = await fetch(`http://localhost:5000/inventory/buy/${user_id}`, {
-    //         method: 'POST',
-    //         headers: {
-    //           'Content-Type': 'application/json',
-    //         },
-    //         body: JSON.stringify({
-    //           event_id
-    //         }),
-    //       });
-    //       await response.json();
-
-
-    //     } catch (error) {
-    //       console.error('Error purchasing: ', error);
-
-    //     }
-
-    //   };
-
     return (
+        <Box>
         <Card
             size='lg'
-            height='100%'
+            height='auto'
             maxWidth='100vw'
-            marginTop='80px'
         >
-            <CardBody>
+            <CardBody overflowY='auto'>
                 <HStack p='15px'>
                     <Wrap>
                         <WrapItem>
@@ -112,7 +89,7 @@ const AccountBox = ({ userId, firstName, lastName, email, avatarUrl, username })
 
                 <Heading as='h2' size='md' paddingStart='5px' paddingTop='15px'>Account</Heading>
 
-                <TableContainer paddingTop='15px'>
+                <TableContainer paddingTop='15px' maxHeight='300px' overflowY='auto' border='solid'>
                     <Table variant='striped' colorScheme='gray' size='lg'>
                         <Tbody>
                             <Tr>
@@ -127,18 +104,14 @@ const AccountBox = ({ userId, firstName, lastName, email, avatarUrl, username })
                                 <Td>Full Name</Td>
                                 <Td>{firstName} {lastName}</Td>
                             </Tr>
-                            <Tr>
-                                <Td>Role</Td>
-                                <Td>TBD</Td>
-                            </Tr>
                         </Tbody>
 
                     </Table>
                 </TableContainer>
 
-                <Heading as='h2' size='md' paddingStart='5px' paddingTop='15px'>Tickets Bought</Heading>
+                <Heading as='h2' size='md' paddingStart='5px' paddingTop='20px'>Tickets Bought</Heading>
 
-                <TableContainer paddingTop='15px'>
+                <TableContainer paddingTop='15px' maxHeight='210px' overflowY='auto'>
                     <Table variant='striped' colorScheme='gray' size='lg'>
                         <Thead>
                             <Tr>
@@ -175,6 +148,7 @@ const AccountBox = ({ userId, firstName, lastName, email, avatarUrl, username })
 
             </CardBody>
         </Card>
+        </Box>
     )
 }
 

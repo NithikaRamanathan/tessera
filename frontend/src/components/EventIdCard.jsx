@@ -1,6 +1,15 @@
 import React, { useEffect, useState } from 'react';
 import {
-  Grid, GridItem, Flex, Box, Heading, VStack, Spacer, Button, Image, Text, Stack, HStack, Container, Center, useDisclosure
+  Grid, GridItem, Flex, Box, Heading, VStack, Spacer, Button, Image, Text, Stack, HStack, Container, Center, useDisclosure, Input, Popover,
+  PopoverTrigger,
+  PopoverContent,
+  PopoverHeader,
+  PopoverBody,
+  PopoverFooter,
+  PopoverArrow,
+  PopoverCloseButton,
+  PopoverAnchor,
+  Tooltip
 } from '@chakra-ui/react';
 // import { useNavigate } from 'react-router-dom';
 import { useColorMode, useColorModeValue } from "@chakra-ui/color-mode";
@@ -8,23 +17,24 @@ import SeatPicker from '../components/SeatPicker';
 import { CalendarIcon, TimeIcon, AddIcon } from '@chakra-ui/icons';
 import { MdOutlineShoppingCartCheckout, MdLocationPin } from "react-icons/md";
 import Checkout from './Checkout';
+import ReservedTickets from './ReservedTickets';
+import CalendarWeekDisplay from './CalendarWeekDisplay';
 
 function EventIdCard({ id, time, name, date, location, imageUrl, description }) {
   const text = useColorModeValue('white', 'gray.700');
   const { colorMode, toggleColorMode } = useColorMode();
   const color = useColorModeValue('blue.500', 'blue.400');
-
   const [userId, setUserId] = useState("")
   const [value, setValue] = useState(0)
-
   const { isOpen, onOpen, onClose } = useDisclosure();
   const [priceRange, setPriceRange] = useState({ min: 0, max: 0 });
+  const [reservedTickets, setReservedTickets] = useState([]);
+  const [soldOut, setSoldOut] = useState(false);
 
-  const formattedDate = new Date(date).toLocaleDateString('en-US', {year: 'numeric', month: 'long', day: 'numeric'})
-
-  const [isSoldOut, setIsSoldOut] = useState(false);
-
-  // const navigate = useNavigate();
+  // formating date
+  const [year, month, day] = date.split('-');
+  const la = new Date(year, month-1, day);
+  const formattedDate = new Date(la).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })
 
   // fetch to get the cheapest and most expensive seat
   const fetchSeatPricesRange = async () => {
@@ -34,10 +44,8 @@ function EventIdCard({ id, time, name, date, location, imageUrl, description }) 
         headers: {
           'Content-Type': 'application/json'
         }
-        
       });
       const prices = await response.json();
-
       const minPrice = Math.min(...prices); // spread into correct format from [] to ()
       const maxPrice = Math.max(...prices);
       setPriceRange({ min: minPrice, max: maxPrice });
@@ -58,8 +66,10 @@ function EventIdCard({ id, time, name, date, location, imageUrl, description }) 
       .then(price => {
         if (add) {
           setValue(value + price)
+          setReservedTickets(x => [...x, {row, number, price}]);
         } else {
           setValue(value - price)
+          setReservedTickets(x => x.filter(ticket => ticket.row !=row || ticket.number != number));
         }
       })
       .catch(error => console.error('Error fetching', error));
@@ -74,16 +84,13 @@ function EventIdCard({ id, time, name, date, location, imageUrl, description }) 
   }, []);
 
   const handleCheckout = () => {
-    // if (!isSoldOut){
-    //   onOpen();
-    // }
     onOpen();
   };
 
   // callback function to update isSoldOut????
-  // const updateIsSoldOut = (soldOut) => {
-  //   setIsSoldOut(soldOut);
-  // }
+  const handleSoldOutChange = (isSoldOut) => {
+    setSoldOut(isSoldOut);
+  }
 
   return (
     <Grid
@@ -143,8 +150,22 @@ function EventIdCard({ id, time, name, date, location, imageUrl, description }) 
       <GridItem rowSpan={1} colSpan={9} p='15px' paddingTop='30px' paddingBottom='25px' alignContent='center' borderBottom='solid' borderColor='gray'>
         <Stack>
           <HStack spacing='30px'>
-            <Stack><Text><CalendarIcon color='blue.500' /> {date}</Text>
-              <Text><TimeIcon color='blue.500' /> {time}</Text></Stack>
+            
+            <Stack>
+            <Popover trigger='hover'>
+              <PopoverTrigger>
+              <Text><CalendarIcon color='blue.500' /> {date}</Text>
+              </PopoverTrigger>
+              <PopoverContent width='auto'>
+                <PopoverBody>
+                  <CalendarWeekDisplay date={date}/>
+                </PopoverBody>
+              </PopoverContent>
+            </Popover>
+              
+              <Text><TimeIcon color='blue.500' /> {time}</Text>
+            </Stack>
+
             <Stack>
               <HStack spacing='1px'><MdLocationPin style={{ color: '#2982B4' }} /><Text>{location} </Text></HStack>
               <Spacer />
@@ -152,6 +173,7 @@ function EventIdCard({ id, time, name, date, location, imageUrl, description }) 
               <Spacer />
               <Spacer />
             </Stack>
+
             <Stack paddingLeft='50px' spacing='0' paddingBottom='14px'>
               <Flex fontSize='xs'>Price</Flex>
               <Heading size='md' color='blue.500'>${priceRange.min}-${priceRange.max}</Heading>
@@ -188,19 +210,20 @@ function EventIdCard({ id, time, name, date, location, imageUrl, description }) 
           event_id={id}
           user_id={userId}
           callback_function={fetchSeatPrice}
-          updateIsSoldOut={setIsSoldOut}
+          // onSoldOutChange={handleSoldOutChange}
         />
+
+        <Box paddingTop='5px'><ReservedTickets reservedTickets={reservedTickets}/></Box>
 
         <HStack paddingTop='20px'>
           <Text> Your total: ${value}</Text>
           <Spacer />
-          {value==0 ? <Button rightIcon={<MdOutlineShoppingCartCheckout />} isDisabled>Checkout</Button> : <Button
+          {value == 0 ? <Button rightIcon={<MdOutlineShoppingCartCheckout />} isDisabled>Checkout</Button> : <Button
             rightIcon={<MdOutlineShoppingCartCheckout />}
             colorScheme='blue'
-            variant='solid' onClick={handleCheckout}>              
+            variant='solid' onClick={handleCheckout}>
             Checkout
           </Button>}
-          
         </HStack>
 
         <Checkout
@@ -215,6 +238,11 @@ function EventIdCard({ id, time, name, date, location, imageUrl, description }) 
 
       {/* footer */}
       <GridItem p={5} rowSpan={1} colSpan={11} />
+
+      
+
+
+    
 
     </Grid>
   );

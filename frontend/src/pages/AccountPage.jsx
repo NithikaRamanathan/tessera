@@ -29,18 +29,24 @@ const AccountPage = () => {
 
   return (
     <Box
-      paddingTop='59px'
-      paddingBottom='150px'
+     marginTop='75px'
       bgGradient='linear(to-r, blue.100, gray.300, gray.400, gray.300, blue.100)'>
       <Grid
-        h='100vh'
-
+        h='93vh'
         alignItems='center'
         justifyContent='center'
-        templateColumns='repeat(5,1fr)'
+        templateColumns='repeat(6,1fr)'
+        templateRows='repeat(10, 1fr)'
+        
+        // overflow='scroll'
+        
       >
-        <GridItem colSpan={1} />
-        <GridItem colSpan={3}>
+        
+        <GridItem colSpan={1} rowSpan={10} h='100%'/>
+        <GridItem colSpan={4} rowSpan={1} h='100%' />
+        <GridItem  h='100%'  colSpan={1} rowSpan={10} />
+        <GridItem colSpan={4} rowSpan={8}h='100%' overflow="auto" >
+          
           {users.map(user => (
             <AccountBox
               key={user.user_id}
@@ -54,6 +60,10 @@ const AccountPage = () => {
 
           ))}
         </GridItem>
+        <GridItem  h='100%'  colSpan={4} rowSpan={1} />
+       
+
+        
 
       </Grid>
     </Box>
