@@ -10,9 +10,9 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@chakra-ui/color-mode": "^2.2.0",
     "@chakra-ui/icons": "^2.1.1",
     "@chakra-ui/react": "^2.8.2",
-    "chakra-ui/color-mode": "^1.0.0",
     "@emotion/react": "^11.11.4",
     "@emotion/styled": "^11.11.5",
     "@stripe/react-stripe-js": "^2.7.3",
@@ -23,8 +23,8 @@
     "react-icons": "^5.2.1",
     "react-router-dom": "^6.24.1",
     "react-tsparticles": "^2.12.2",
-    "tsparticles": "^3.5.0",
-    "tessera-seat-picker": "git://github.com/muhammadtalhas/tessera-seat-picker"
+    "tessera-seat-picker": "git://github.com/muhammadtalhas/tessera-seat-picker",
+    "tsparticles": "^3.5.0"
   },
   "devDependencies": {
     "@types/react": "^18.2.66",
