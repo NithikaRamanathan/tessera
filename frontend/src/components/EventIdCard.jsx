@@ -35,11 +35,12 @@ function EventIdCard({ id, time, name, date, location, imageUrl, description }) 
   const [year, month, day] = date.split('-');
   const la = new Date(year, month-1, day);
   const formattedDate = new Date(la).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })
+  const VITE_BACKEND_URL = import.meta.env.VITE_BACKEND_URL
 
   // fetch to get the cheapest and most expensive seat
   const fetchSeatPricesRange = async () => {
     try {
-      const response = await fetch(`http://localhost:5000/inventory/price_range?event_id=${id}`, {
+      const response = await fetch(`${VITE_BACKEND_URL}/inventory/price_range?event_id=${id}`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json'
@@ -56,7 +57,7 @@ function EventIdCard({ id, time, name, date, location, imageUrl, description }) 
   };
 
   const fetchSeatPrice = async (row, number, add) => {
-    await fetch(`http://localhost:5000/get_price?row=${row}&number=${number}&event_id=${id}`, {
+    await fetch(`${VITE_BACKEND_URL}/get_price?row=${row}&number=${number}&event_id=${id}`, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json'
@@ -77,7 +78,7 @@ function EventIdCard({ id, time, name, date, location, imageUrl, description }) 
 
   useEffect(() => {
     fetchSeatPricesRange();
-    fetch(`http://localhost:5000/users/current`, { credentials: 'include' })
+    fetch(`${VITE_BACKEND_URL}/users/current`, { credentials: 'include' })
       .then(response => response.json())
       .then(data => setUserId(data))
       .catch(error => console.error('Error fetching events:', error));

@@ -15,11 +15,12 @@ import { CgProfile } from 'react-icons/cg';
 function MenuDrop() {
     const navigate = useNavigate();
     const toast = useToast();
+    const VITE_BACKEND_URL = import.meta.env.VITE_BACKEND_URL
 
     function redirect() {
 
         try {
-            fetch(`http://localhost:5000/users/account_info`, { credentials: 'include' })
+            fetch(`${VITE_BACKEND_URL}/users/account_info`, { credentials: 'include' })
                 .then(response => {
                     if (response.status != 200) {
                         navigate('/login')
@@ -38,7 +39,7 @@ function MenuDrop() {
     }
 
     async function fetchLogout() {
-        const response = await fetch(`http://localhost:5000/logout`, {
+        const response = await fetch(`${VITE_BACKEND_URL}/logout`, {
             method: 'POST',
             credentials: 'include',  // Include cookies in the request
 

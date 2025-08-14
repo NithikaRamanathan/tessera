@@ -49,13 +49,15 @@ function LoginBox() {
 
     const [invalid, setInvalid] = useState(false);
 
+    const VITE_BACKEND_URL = import.meta.env.VITE_BACKEND_URL
+
     // check the status code in the then. if status code is 400 set the state. and 
 
 
     // fetc  to make hrtp requests to the backend. fetches login values
     async function fetchLoginValues() {
 
-        const response = await fetch(`http://localhost:5000/login`, {
+        const response = await fetch(`${VITE_BACKEND_URL}/login`, {
             method: 'POST',
             credentials: 'include',  // Include cookies in the request
             headers: {

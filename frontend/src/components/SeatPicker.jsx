@@ -15,9 +15,11 @@ function SeatPicker({ event_id, user_id, callback_function, onSoldOutChange }) {
     const [soldOut, setSoldOut] = useState(false);
     const toast = useToast();
     const toastId = 'soldOutToast'
+    const VITE_BACKEND_URL = import.meta.env.VITE_BACKEND_URL
+
     // fetch the tickets (seats) when the event_id changes
     useEffect(() => {
-        fetch(`http://localhost:5000/inventory/tickets/event/${event_id}`, {
+        fetch(`${VITE_BACKEND_URL}/inventory/tickets/event/${event_id}`, {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json'
@@ -88,7 +90,7 @@ function SeatPicker({ event_id, user_id, callback_function, onSoldOutChange }) {
 
         // const price = await fetchSeatPrice(row, number, event_id);
         // Your custom logic to reserve the seat goes here:
-        fetch(`http://localhost:5000/inventory/reserve/${user_id}`, {
+        fetch(`${VITE_BACKEND_URL}/inventory/reserve/${user_id}`, {
             method: 'PUT',
             headers: {
                 'Content-Type': 'application/json'
@@ -118,7 +120,7 @@ function SeatPicker({ event_id, user_id, callback_function, onSoldOutChange }) {
 
 
         // Your custom logic to remove the seat goes here...
-        fetch(`http://localhost:5000/inventory/unreserve`, {
+        fetch(`${VITE_BACKEND_URL}/inventory/unreserve`, {
             method: 'PUT',
             headers: {
                 'Content-Type': 'application/json'

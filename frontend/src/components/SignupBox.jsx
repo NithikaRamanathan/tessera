@@ -57,9 +57,11 @@ function SignupBox() {
     // light/dark mode
     const textColor = useColorModeValue('blue.500', 'blue.200')
 
+    const VITE_BACKEND_URL = import.meta.env.VITE_BACKEND_URL
+
     // fetch  to make hrtp requests to the backend. fetches signup values
     async function fetchSignupValues() {
-        const response = await fetch(`http://localhost:5000/users/create`, {
+        const response = await fetch(`${VITE_BACKEND_URL}/users/create`, {
             method: 'POST',
             //credentials: 'include',  // Include cookies in the request
             headers: {

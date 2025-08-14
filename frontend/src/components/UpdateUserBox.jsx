@@ -57,9 +57,10 @@ const UpdateUserBox = ({ user_id, username, email, firstName, lastName, avatarUr
     const passwordsMatch = new_password === confirmPassword;
 
     const textColor = useColorModeValue('blue.500', 'blue.200')
+    const VITE_BACKEND_URL = import.meta.env.VITE_BACKEND_URL
 
     async function fetchUpdateUser() {
-        const response = await fetch(`http://localhost:5000/users/update/${user_id}`, {
+        const response = await fetch(`${VITE_BACKEND_URL}/users/update/${user_id}`, {
             method: 'PUT',
             headers: {
                 'Content-Type': 'application/json',
@@ -103,7 +104,7 @@ const UpdateUserBox = ({ user_id, username, email, firstName, lastName, avatarUr
             return; // return if the new password doesn't match confirm password
         }
         
-        const response = await fetch(`http://localhost:5000/users/change_password/${user_id}`, {
+        const response = await fetch(`${VITE_BACKEND_URL}/users/change_password/${user_id}`, {
             method: 'PUT',
             headers: {
                 'Content-Type': 'application/json',

@@ -6,9 +6,10 @@ import {
 } from '@chakra-ui/react'
 function TicketsBoughtTable({ eventId, rowName, seatNumber, purchaseDate }) {
     const [event, setEvent] = useState([]);
+    const VITE_BACKEND_URL = import.meta.env.VITE_BACKEND_URL
 
     useEffect(() => {
-        fetch(`http://localhost:5000/events/${eventId}`, { credentials: 'include' })
+        fetch(`${VITE_BACKEND_URL}/events/${eventId}`, { credentials: 'include' })
             .then(response => response.json())
             .then(event => setEvent(event[0]))
             .catch(error => console.error('Error fetching events', error));
