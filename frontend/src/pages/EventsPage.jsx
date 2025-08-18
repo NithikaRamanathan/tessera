@@ -19,11 +19,6 @@ function EventsPage() {
     setNameFromChild(name);
     setLocationFromChild(location);
   }
-  
-  console.log("Date before fetch:", date);
-  console.log("Name before fetch:", name);
-  console.log("Loc before fetch:", location);
-
 
   useEffect(() => {
     fetch(`${VITE_BACKEND_URL}/events?date=${date}&name=${name}&location=${location}`)

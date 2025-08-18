@@ -26,7 +26,7 @@ from flask_jwt_extended import (
 
 from flask_cors import CORS
 app = Flask(__name__)  # Creating a new Flask app. This will help us create API endpoints hiding the complexity of writing network code!
-CORS(app, supports_credentials=True)
+CORS(app, supports_credentials=True, origins=['https://api4.talha.academy'])
 
 app.config['JWT_TOKEN_LOCATION'] = ['cookies']
 
