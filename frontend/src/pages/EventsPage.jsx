@@ -23,6 +23,9 @@ function EventsPage() {
   useEffect(() => {
     fetch(`${VITE_BACKEND_URL}/events?date=${date}&name=${name}&location=${location}`)
       .then(response => response.json())
+      .then(console.log(date))
+      .then(console.log(name))
+      .then(console.log(location))
       .then(setEvents)
       .catch(error => console.error('Error fetching events:', error));
   }, [date, name, location]);
