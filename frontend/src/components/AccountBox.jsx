@@ -33,9 +33,10 @@ const AccountBox = ({ userId, firstName, lastName, email, avatarUrl, username })
     const [invalid, setInvalid] = useState(false);
     const navigate = useNavigate();
     const [tickets, setTickets] = useState([]);
+    const VITE_BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
 
     async function fetchLogout() {
-        const response = await fetch(`http://localhost:5000/logout`, {
+        const response = await fetch(`${VITE_BACKEND_URL}/logout`, {
             method: 'POST',
             credentials: 'include',  // Include cookies in the request
 
@@ -51,7 +52,7 @@ const AccountBox = ({ userId, firstName, lastName, email, avatarUrl, username })
     }
 
     useEffect(() => {
-        fetch(`http://localhost:5000/inventory/display/${userId}`, {
+        fetch(`${VITE_BACKEND_URL}/inventory/display/${userId}`, {
             credentials: 'include'
         })
             .then(response => response.json())

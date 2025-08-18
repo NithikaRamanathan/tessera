@@ -40,9 +40,10 @@ function ChangePassword(user_id) {
     const [new_password, setNewPassword] = useState('');
     const [curr_password, setCurrPassword] = useState('');
     const navigate = useNavigate();
+    const VITE_BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
 
     async function fetchChangePass() {
-        const response = await fetch(`http://localhost:5000/users/change_password/${user_id}`, {
+        const response = await fetch(`${VITE_BACKEND_URL}/users/change_password/${user_id}`, {
             method: 'PUT',
             headers: {
                 'Content-Type': 'application/json',

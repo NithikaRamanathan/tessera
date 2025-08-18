@@ -12,6 +12,7 @@ function EventsPage() {
   const [date, setDateFromChild] = useState("");
   const [name, setNameFromChild] = useState("");
   const[location, setLocationFromChild ] = useState("");
+  const VITE_BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
 
   function handleDataFromChild(date, name, location) {
     setDateFromChild(date);
@@ -20,7 +21,7 @@ function EventsPage() {
   }
 
   useEffect(() => {
-    fetch(`http://localhost:5000/events?date=${date}&name=${name}&location=${location}`)
+    fetch(`${VITE_BACKEND_URL}/events?date=${date}&name=${name}&location=${location}`)
       .then(response => response.json())
       .then(setEvents)
       .catch(error => console.error('Error fetching events:', error));

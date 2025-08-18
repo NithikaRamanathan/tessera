@@ -21,8 +21,10 @@ import {
 
 const UpdateUserPage = () => {
     const [users, setUsers] = useState([]);
+    const VITE_BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
+
     useEffect(() => {
-        fetch(`http://localhost:5000/users/account_info`, {credentials:'include'})
+        fetch(`${VITE_BACKEND_URL}/users/account_info`, {credentials:'include'})
         .then(response => response.json())
         .then(setUsers)
         .catch(error => console.error('Error fetching User:', error));

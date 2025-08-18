@@ -7,9 +7,10 @@ import EventIdCard from '../components/EventIdCard';
 function EventDetail() {
   const { id } = useParams(); 
   const [events, setEvents] = useState([]);
+  const VITE_BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
 
   useEffect(() => {
-    fetch(`http://localhost:5000/events/${id}`, {credentials:'include'})
+    fetch(`${VITE_BACKEND_URL}/events/${id}`, {credentials:'include'})
       .then(response => response.json())
       .then(setEvents)
 
