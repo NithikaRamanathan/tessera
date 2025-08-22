@@ -30,7 +30,7 @@ CORS(app, supports_credentials=True)
 
 app.config['JWT_TOKEN_LOCATION'] = ['cookies']
 
-# app.config['JWT_COOKIE_CSRF_PROTECT'] = True
+app.config['JWT_COOKIE_CSRF_PROTECT'] = True
 
 app.config['JWT_SECRET_KEY'] = 'super-secret'
 jwt = JWTManager(app)
@@ -104,7 +104,9 @@ def update_event():
         conn = get_db_connection()
         cursor = conn.cursor()
         cursor.execute('UPDATE Events SET date=? WHERE event_id=?', (new_date, event_id))
-        return jsonify({'message': 'Changed date successfully'}), 401
+        conn.commit()
+        conn.close()
+        return jsonify({'message': 'Changed date successfully'}), 200
         
     except sqlite3.Error as e:
         return jsonify({'error': 'Database error'}), 500 
@@ -172,7 +174,7 @@ def create_user():
         return jsonify({'error': str(e)}), 500
 
 
-# what if user gives both uysername and email
+# what if user gives both username and email
 @app.route('/login', methods=['POST'])
 def login():
 
@@ -221,12 +223,14 @@ def login():
                 "username": user_info['username'],
                 "email": email
             }
+
+            subject = str(subject)
         if pass_hash != None:
             #existing_pass_hash = pass_hash['password_hash']
             if check_password_hash(pass_hash, password):
                 
                 # Create the token we will be sending back to the user
-                access_token = create_access_token(identity=subject , expires_delta=expires)
+                access_token = create_access_token(identity=str(subject), expires_delta=expires)
                 resp = jsonify({'message': 'Logged in'})
                 set_access_cookies(resp, access_token)
                 return resp, 200
@@ -533,8 +537,9 @@ def get_event_with_id(event_id):
 @app.route('/users/account_info', methods=['GET'])
 @jwt_required()
 def account_info():
-    jwt = get_jwt()
-    user_id = jwt['sub']['user_id']
+    user_id = get_jwt_identity()
+    # jwt = get_jwt()
+    # user_id = jwt['sub']['user_id']
    
     try:
             conn = get_db_connection()
@@ -724,7 +729,6 @@ def bought_seats(user_id):
     # Close the database connection
     
     return jsonify(tickets_list)
-    
     
 @app.route('/inventory/reserve/<user_id>', methods=['PUT'])
 def reserve_ticket(user_id):

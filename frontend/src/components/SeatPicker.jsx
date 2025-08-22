@@ -102,7 +102,7 @@ function SeatPicker({ event_id, user_id, callback_function, onSoldOutChange }) {
             })
 
         }).then(x => {
-            callback_function(row, number, add)
+            callback_function(row, number, add);
             // Assuming everything went well...
             setSelected((prevItems) => [...prevItems, id]);
 
